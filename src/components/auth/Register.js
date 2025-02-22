@@ -59,6 +59,7 @@ const Register = () => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
+        password2: formData.confirmPassword,
         role: formData.role
       });
 

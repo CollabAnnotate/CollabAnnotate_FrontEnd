@@ -11,7 +11,6 @@ import Sidebar from './components/layout/Sidebar';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 
-
 // Main Components
 import Dashboard from './components/dashboard/Dashboard';
 import ImageAnnotator from './components/annotation/ImageAnnotator';
@@ -19,6 +18,7 @@ import RevisionInterface from './components/revision/RevisionInterface';
 import ReportGeneration from './components/reports/ReportGeneration';
 import UserManagement from './components/users/UserManagement';
 import ProjectList from './components/projects/ProjectList';
+import ProjectDetail from './components/projects/ProjectDetail';
 import UserProfile from './components/users/UserProfile';
 import Settings from './components/settings/Settings';
 
@@ -72,12 +72,12 @@ const App = () => {
           sx={{
             flexGrow: 1,
             p: 3,
-            mt: 8, // Pour compenser la hauteur de la navbar
+            mt: 8,
             width: '100%'
           }}
         >
           <Routes>
-            {/* Route Dashboard - accessible à tous les utilisateurs authentifiés */}
+            {/* Route Dashboard */}
             <Route
               path="/dashboard"
               element={
@@ -87,9 +87,27 @@ const App = () => {
               }
             />
 
-            {/* Route Annotation - accessible aux annotateurs et admins */}
+            {/* Routes Projets */}
             <Route
-              path="/annotation"
+              path="/projects"
+              element={
+                <PrivateRoute>
+                  <ProjectList />
+                </PrivateRoute>
+              }
+            />
+            
+            <Route
+              path="/projects/:id"
+              element={
+                <PrivateRoute>
+                  <ProjectDetail />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/projects/:id/annotate"
               element={
                 <PrivateRoute roles={['annotateur', 'admin']}>
                   <ImageAnnotator />
@@ -97,7 +115,7 @@ const App = () => {
               }
             />
 
-            {/* Route Révision - accessible aux vérificateurs et admins */}
+            {/* Route Révision */}
             <Route
               path="/revision"
               element={
@@ -107,7 +125,7 @@ const App = () => {
               }
             />
 
-            {/* Route Rapports - accessible uniquement aux admins */}
+            {/* Route Rapports */}
             <Route
               path="/reports"
               element={
@@ -117,7 +135,7 @@ const App = () => {
               }
             />
 
-            {/* Route Gestion des utilisateurs - accessible uniquement aux admins */}
+            {/* Route Gestion des utilisateurs */}
             <Route
               path="/users"
               element={
@@ -127,17 +145,7 @@ const App = () => {
               }
             />
 
-            {/* Route Création de projet - accessible à tous les utilisateurs authentifiés */}
-            <Route
-              path="/projects/new"
-              element={
-                <PrivateRoute>
-                  <ProjectList />
-                </PrivateRoute>
-              }
-            />
-
-            {/* Route Profil utilisateur - accessible à tous les utilisateurs authentifiés */}
+            {/* Route Profil utilisateur */}
             <Route
               path="/profile"
               element={
@@ -147,7 +155,7 @@ const App = () => {
               }
             />
 
-            {/* Route Paramètres - accessible à tous les utilisateurs authentifiés */}
+            {/* Route Paramètres */}
             <Route
               path="/settings"
               element={
@@ -158,10 +166,8 @@ const App = () => {
             />
 
             {/* Redirection par défaut vers le dashboard */}
-            <Route
-              path="*"
-              element={<Navigate to="/dashboard" replace />}
-            />
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
         </Box>
       </Box>

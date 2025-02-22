@@ -52,61 +52,58 @@ const BoundingBox = ({
     }
   }, [isSelected]);
 
-  const handleDragEnd = (e) => {
-    if (!onChange) return;
-
-    const node = e.target;
-    const stage = node.getStage();
-    const scale = imageScale || 1;
-    
-    // Calculer les nouvelles coordonnées relatives (0-1)
-    const newCoords = {
-      x_min: node.x() / (stage.width() * scale),
-      y_min: node.y() / (stage.height() * scale),
-      x_max: (node.x() + node.width() * node.scaleX()) / (stage.width() * scale),
-      y_max: (node.y() + node.height() * node.scaleY()) / (stage.height() * scale)
-    };
-
-    onChange({
-      ...annotation,
-      ...newCoords
-    });
-  };
-
-  const scale = imageScale || 1;
-  const width = (annotation.x_max - annotation.x_min) * stageRef.current?.width() * scale || 0;
-  const height = (annotation.y_max - annotation.y_min) * stageRef.current?.height() * scale || 0;
-  const x = annotation.x_min * stageRef.current?.width() * scale || 0;
-  const y = annotation.y_min * stageRef.current?.height() * scale || 0;
+  // Définir la couleur en fonction du type d'annotation
+  const boxColor = annotation.type === 'yolo' ? '#00ff00' : '#ff0000';
+  const boxOpacity = annotation.type === 'yolo' ? 0.3 : 0.2;
 
   return (
     <>
       <Rect
         ref={shapeRef}
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        stroke={isSelected ? "#00ff00" : "#ff0000"}
+        x={annotation.x_min * imageScale.width}
+        y={annotation.y_min * imageScale.height}
+        width={(annotation.x_max - annotation.x_min) * imageScale.width}
+        height={(annotation.y_max - annotation.y_min) * imageScale.height}
+        fill={boxColor}
+        opacity={boxOpacity}
+        stroke={boxColor}
         strokeWidth={2}
-        fill="transparent"
+        draggable
         onClick={onSelect}
         onTap={onSelect}
-        draggable
-        onDragEnd={handleDragEnd}
+        onDragEnd={(e) => {
+          const node = e.target;
+          const scaleX = 1 / imageScale.width;
+          const scaleY = 1 / imageScale.height;
+          
+          onChange({
+            ...annotation,
+            x_min: node.x() * scaleX,
+            y_min: node.y() * scaleY,
+            x_max: (node.x() + node.width()) * scaleX,
+            y_max: (node.y() + node.height()) * scaleY
+          });
+        }}
+        onTransformEnd={(e) => {
+          const node = e.target;
+          const scaleX = 1 / imageScale.width;
+          const scaleY = 1 / imageScale.height;
+          
+          onChange({
+            ...annotation,
+            x_min: node.x() * scaleX,
+            y_min: node.y() * scaleY,
+            x_max: (node.x() + node.width()) * scaleX,
+            y_max: (node.y() + node.height()) * scaleY
+          });
+        }}
       />
       {isSelected && (
         <Transformer
           ref={transformerRef}
           boundBoxFunc={(oldBox, newBox) => {
-            // Empêcher les dimensions négatives
-            const minSize = 5;
-            if (newBox.width < minSize || newBox.height < minSize) {
-              return oldBox;
-            }
             return newBox;
           }}
-          rotateEnabled={false}
         />
       )}
     </>
@@ -114,406 +111,197 @@ const BoundingBox = ({
 };
 
 const BoundingBoxEditor = ({ annotation, onUpdate }) => {
-  const [coordinates, setCoordinates] = useState({
-    x_min: annotation.x_min || 0,
-    y_min: annotation.y_min || 0,
-    x_max: annotation.x_max || 1,
-    y_max: annotation.y_max || 1
-  });
+  const [label, setLabel] = useState(annotation.label || '');
 
-  const handleChange = (field, value) => {
-    // Convertir en nombre
-    const num = parseFloat(value);
-    
-    // Mettre à jour seulement si c'est un nombre valide
-    if (!isNaN(num)) {
-      const newCoordinates = { ...coordinates };
-      
-      // Appliquer les contraintes min/max
-      switch (field) {
-        case 'x_min':
-          newCoordinates.x_min = Math.min(Math.max(num, 0), coordinates.x_max);
-          break;
-        case 'y_min':
-          newCoordinates.y_min = Math.min(Math.max(num, 0), coordinates.y_max);
-          break;
-        case 'x_max':
-          newCoordinates.x_max = Math.min(Math.max(num, coordinates.x_min), 1);
-          break;
-        case 'y_max':
-          newCoordinates.y_max = Math.min(Math.max(num, coordinates.y_min), 1);
-          break;
-      }
-      
-      setCoordinates(newCoordinates);
-    }
-  };
+  useEffect(() => {
+    setLabel(annotation.label || '');
+  }, [annotation]);
 
-  const handleUpdate = () => {
-    onUpdate(coordinates);
+  const handleLabelChange = (e) => {
+    const newLabel = e.target.value;
+    setLabel(newLabel);
+    onUpdate({
+      ...annotation,
+      label: newLabel
+    });
   };
 
   return (
-    <Box>
-      <Grid container spacing={2}>
-        <Grid item xs={6}>
-          <TextField
-            fullWidth
-            label="X Min"
-            type="number"
-            inputProps={{ 
-              min: 0, 
-              max: coordinates.x_max,
-              step: 0.01 
-            }}
-            value={coordinates.x_min.toString()}
-            onChange={(e) => handleChange('x_min', e.target.value)}
-            margin="normal"
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            fullWidth
-            label="Y Min"
-            type="number"
-            inputProps={{ 
-              min: 0, 
-              max: coordinates.y_max,
-              step: 0.01 
-            }}
-            value={coordinates.y_min.toString()}
-            onChange={(e) => handleChange('y_min', e.target.value)}
-            margin="normal"
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            fullWidth
-            label="X Max"
-            type="number"
-            inputProps={{ 
-              min: coordinates.x_min, 
-              max: 1,
-              step: 0.01 
-            }}
-            value={coordinates.x_max.toString()}
-            onChange={(e) => handleChange('x_max', e.target.value)}
-            margin="normal"
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            fullWidth
-            label="Y Max"
-            type="number"
-            inputProps={{ 
-              min: coordinates.y_min, 
-              max: 1,
-              step: 0.01 
-            }}
-            value={coordinates.y_max.toString()}
-            onChange={(e) => handleChange('y_max', e.target.value)}
-            margin="normal"
-          />
-        </Grid>
-      </Grid>
-      <Button 
-        variant="contained"
-        onClick={handleUpdate}
-        sx={{ mt: 2 }}
-      >
-        Mettre à jour
-      </Button>
+    <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+      <Typography variant="subtitle1" gutterBottom>
+        Éditer l'annotation
+      </Typography>
+      <TextField
+        fullWidth
+        label="Label"
+        value={label}
+        onChange={handleLabelChange}
+        margin="normal"
+        size="small"
+        placeholder="Entrez un label pour cette annotation"
+      />
+      <Typography variant="caption" color="textSecondary">
+        Position: ({(annotation.x_min * 100).toFixed(1)}%, {(annotation.y_min * 100).toFixed(1)}%) - 
+        ({(annotation.x_max * 100).toFixed(1)}%, {(annotation.y_max * 100).toFixed(1)}%)
+      </Typography>
     </Box>
   );
 };
 
-const ImageAnnotator = ({ onSave }) => {
-  const [annotations, setAnnotations] = useState([]);
+const ImageAnnotator = ({ image, onSave, existingAnnotations = [] }) => {
+  const [annotations, setAnnotations] = useState(existingAnnotations);
   const [selectedId, setSelectedId] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [imageElement, setImageElement] = useState(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingAnnotation, setEditingAnnotation] = useState(null);
+  const [drawing, setDrawing] = useState(false);
+  const [startPoint, setStartPoint] = useState(null);
+  const [imageObj, setImageObj] = useState(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [scale, setScale] = useState(1);
   const stageRef = useRef(null);
+  const layerRef = useRef(null);
 
-  // Fonction pour générer un ID unique
-  const generateId = () => `ann_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-  // Fonction pour gérer le chargement d'une image
-  const handleImageUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Charger l'image pour l'affichage
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new window.Image();
-        img.src = e.target.result;
-        img.onload = () => {
-          setImageElement(img);
-        };
-      };
-      reader.readAsDataURL(file);
-
-      // Envoyer l'image au serveur pour la détection
-      const response = await annotationAPI.detectObjects(file);
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = image.image_url;
+    img.onload = () => {
+      setImageObj(img);
+      setImageLoaded(true);
       
-      // Ajouter des IDs aux détections et mettre à jour les annotations
-      if (response.data && response.data.detections) {
-        const detectionsWithIds = response.data.detections.map(detection => ({
-          ...detection,
-          id: generateId()
-        }));
-        setAnnotations(detectionsWithIds);
-      } else {
-        setAnnotations([]);
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement:', error);
-      setError('Erreur lors du chargement de l\'image. Veuillez réessayer.');
-      setAnnotations([]);
-    } finally {
-      setLoading(false);
+      // Calculer l'échelle pour adapter l'image à la fenêtre
+      const maxWidth = window.innerWidth * 0.8;
+      const maxHeight = window.innerHeight * 0.6;
+      const scale = Math.min(
+        maxWidth / img.width,
+        maxHeight / img.height
+      );
+      setScale(scale);
+    };
+  }, [image]);
+
+  const handleMouseDown = (e) => {
+    if (!drawing) return;
+    
+    const stage = e.target.getStage();
+    const point = stage.getPointerPosition();
+    const { x, y } = point;
+    
+    setStartPoint({ x, y });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!drawing || !startPoint) return;
+
+    const stage = e.target.getStage();
+    const point = stage.getPointerPosition();
+    const { x, y } = point;
+    
+    const width = x - startPoint.x;
+    const height = y - startPoint.y;
+    
+    const annotation = {
+      x_min: Math.min(startPoint.x, x) / (stage.width() * scale),
+      y_min: Math.min(startPoint.y, y) / (stage.height() * scale),
+      x_max: Math.max(startPoint.x, x) / (stage.width() * scale),
+      y_max: Math.max(startPoint.y, y) / (stage.height() * scale),
+      label: '',
+    };
+    
+    // Mettre à jour la dernière annotation
+    setAnnotations(prev => {
+      const newAnnotations = [...prev];
+      newAnnotations[newAnnotations.length - 1] = annotation;
+      return newAnnotations;
+    });
+  };
+
+  const handleMouseUp = () => {
+    if (!drawing) return;
+    setDrawing(false);
+    setStartPoint(null);
+  };
+
+  const startDrawing = () => {
+    setDrawing(true);
+    setAnnotations(prev => [...prev, {}]);
+  };
+
+  const handleSave = () => {
+    if (onSave) {
+      onSave(annotations.filter(ann => 
+        ann.label && 
+        ann.x_max > ann.x_min && 
+        ann.y_max > ann.y_min
+      ));
     }
   };
 
-  // Fonction pour gérer la suppression d'une annotation
-  const handleAnnotationDelete = (annotationId) => {
-    setAnnotations(prevAnnotations => 
-      prevAnnotations.filter(ann => ann.id !== annotationId)
-    );
-    setSelectedId(null);
-  };
-
-  // Fonction pour gérer la mise à jour d'une annotation
-  const handleAnnotationUpdate = (updatedAnnotation) => {
-    setAnnotations(prevAnnotations =>
-      prevAnnotations.map(ann =>
-        ann.id === updatedAnnotation.id ? updatedAnnotation : ann
-      )
-    );
-  };
-
-  // Fonction pour gérer la sélection d'une annotation
-  const handleSelect = (id) => {
-    setSelectedId(id === selectedId ? null : id);
-  };
-
-  // Fonction pour gérer l'ouverture du dialogue d'édition
-  const handleEditClick = (annotation, event) => {
-    event.stopPropagation();
-    setEditingAnnotation(annotation);
-    setEditDialogOpen(true);
-  };
-
-  // Fonction pour gérer la fermeture du dialogue d'édition
-  const handleCloseDialog = () => {
-    setEditDialogOpen(false);
-    setEditingAnnotation(null);
-  };
-
-  // Fonction pour gérer la mise à jour depuis le dialogue
-  const handleDialogUpdate = (updatedAnnotation) => {
-    handleAnnotationUpdate(updatedAnnotation);
-    handleCloseDialog();
-  };
+  if (!imageLoaded) {
+    return <CircularProgress />;
+  }
 
   return (
-    <Box sx={{ width: '100%', p: 2 }}>
-      <Typography variant="h4" gutterBottom>
-        Interface d'Annotation
-      </Typography>
+    <Box>
+      <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
+        <Button
+          variant="contained"
+          onClick={startDrawing}
+          disabled={drawing}
+        >
+          Dessiner une annotation
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSave}
+          disabled={!annotations.length}
+        >
+          Sauvegarder les annotations
+        </Button>
+      </Box>
 
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Box sx={{ mb: 2 }}>
-            <input
-              accept="image/*"
-              type="file"
-              onChange={handleImageUpload}
-              style={{ display: 'none' }}
-              id="image-upload"
-            />
-            <label htmlFor="image-upload">
-              <Button
-                variant="contained"
-                component="span"
-                disabled={loading}
-                size="large"
-              >
-                CHARGER UNE IMAGE
-              </Button>
-            </label>
-
-            {error && (
-              <Alert severity="error" sx={{ mt: 2 }}>
-                {error}
-              </Alert>
-            )}
-          </Box>
-        </Grid>
-
-        <Grid item xs={12} md={9}>
-          <Paper 
-            sx={{ 
-              width: '100%', 
-              height: '600px',
-              overflow: 'hidden',
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#f5f5f5'
-            }}
-          >
-            {loading && (
-              <CircularProgress 
-                sx={{ 
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)'
-                }} 
-              />
-            )}
-            
-            <Stage
-              ref={stageRef}
-              width={window.innerWidth * 0.6}
-              height={600}
-              onMouseDown={e => {
-                if (e.target === e.target.getStage()) {
-                  setSelectedId(null);
-                }
-              }}
-            >
-              <Layer>
-                {imageElement && (
-                  <KonvaImage
-                    image={imageElement}
-                    width={window.innerWidth * 0.6}
-                    height={600}
-                  />
-                )}
-                
-                {annotations.map((ann) => (
-                  <BoundingBox
-                    key={ann.id}
-                    annotation={ann}
-                    isSelected={ann.id === selectedId}
-                    onSelect={() => handleSelect(ann.id)}
-                    onChange={handleAnnotationUpdate}
-                    imageScale={1}
-                    stageRef={stageRef}
-                  />
-                ))}
-              </Layer>
-            </Stage>
-          </Paper>
-        </Grid>
-
-        {/* Panneau latéral */}
-        <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Annotations
-            </Typography>
-            
-            {/* Liste des annotations */}
-            <List>
-              {annotations.map((ann) => (
-                <ListItem
-                  key={`list-item-${ann.id}`}
-                  selected={ann.id === selectedId}
-                  onClick={() => handleSelect(ann.id)}
-                  sx={{ cursor: 'pointer' }}
-                >
-                  <ListItemText
-                    primary={ann.label}
-                    secondary={`Confiance: ${(ann.confidence * 100).toFixed(1)}%`}
-                  />
-                  {ann.id === selectedId && (
-                    <Box>
-                      <IconButton 
-                        key={`edit-btn-${ann.id}`}
-                        size="small"
-                        onClick={(e) => handleEditClick(ann, e)}
-                        sx={{ mr: 1 }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton 
-                        key={`delete-btn-${ann.id}`}
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAnnotationDelete(ann.id);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  )}
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Dialogue d'édition */}
-      <Dialog 
-        open={editDialogOpen} 
-        onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
+      <Stage
+        width={imageObj.width * scale}
+        height={imageObj.height * scale}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        ref={stageRef}
       >
-        <DialogTitle>
-          Modifier l'annotation
-        </DialogTitle>
-        <DialogContent>
-          {editingAnnotation && (
-            <>
-              <TextField
-                fullWidth
-                label="Label"
-                value={editingAnnotation.label}
-                onChange={(e) => setEditingAnnotation({
-                  ...editingAnnotation,
-                  label: e.target.value
-                })}
-                margin="normal"
-              />
-              <BoundingBoxEditor 
-                annotation={editingAnnotation}
-                onUpdate={(updatedCoords) => {
-                  setEditingAnnotation({
-                    ...editingAnnotation,
-                    ...updatedCoords
-                  });
-                }}
-              />
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>
-            Annuler
-          </Button>
-          <Button 
-            onClick={() => handleDialogUpdate(editingAnnotation)}
-            variant="contained"
-          >
-            Sauvegarder
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <Layer ref={layerRef}>
+          <KonvaImage
+            image={imageObj}
+            width={imageObj.width * scale}
+            height={imageObj.height * scale}
+          />
+          {annotations.map((ann, i) => (
+            <BoundingBox
+              key={i}
+              annotation={ann}
+              isSelected={i === selectedId}
+              onSelect={() => setSelectedId(i)}
+              onChange={(newAnn) => {
+                const newAnnotations = [...annotations];
+                newAnnotations[i] = newAnn;
+                setAnnotations(newAnnotations);
+              }}
+              imageScale={{ width: imageObj.width * scale, height: imageObj.height * scale }}
+              stageRef={stageRef}
+            />
+          ))}
+        </Layer>
+      </Stage>
+
+      <Box sx={{ mt: 2 }}>
+        {selectedId !== null && (
+          <BoundingBoxEditor
+            annotation={annotations[selectedId]}
+            onUpdate={(newAnn) => {
+              const newAnnotations = [...annotations];
+              newAnnotations[selectedId] = newAnn;
+              setAnnotations(newAnnotations);
+            }}
+          />
+        )}
+      </Box>
     </Box>
   );
 };

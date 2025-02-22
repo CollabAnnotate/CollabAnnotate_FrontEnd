@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Grid,
   Card,
   CardContent,
+  CardActions,
   Typography,
   Button,
   Dialog,
@@ -13,10 +15,12 @@ import {
   TextField,
   CircularProgress,
   Alert,
+  ButtonGroup,
 } from '@mui/material';
 import { projectsAPI } from '../../services/api';
 
 const ProjectList = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [newProject, setNewProject] = useState({
@@ -49,13 +53,23 @@ const ProjectList = () => {
     }
 
     try {
-      await projectsAPI.createProject(newProject);
+      const response = await projectsAPI.createProject(newProject);
       setOpenDialog(false);
       fetchProjects();
       setNewProject({ name: '', description: '' });
+      // Rediriger vers le nouveau projet
+      navigate(`/projects/${response.data.id}`);
     } catch (error) {
       setError('Erreur lors de la création du projet');
     }
+  };
+
+  const handleAnnotate = (projectId) => {
+    navigate(`/projects/${projectId}/annotate`);
+  };
+
+  const handleViewDetails = (projectId) => {
+    navigate(`/projects/${projectId}`);
   };
 
   return (
@@ -79,42 +93,64 @@ const ProjectList = () => {
             <Card>
               <CardContent>
                 <Typography variant="h6">{project.name}</Typography>
-                <Typography color="textSecondary">
+                <Typography color="textSecondary" gutterBottom>
                   {project.description}
                 </Typography>
-                <Typography variant="body2">
+                <Typography variant="body2" color="textSecondary">
                   Créé le: {new Date(project.created_at).toLocaleDateString()}
                 </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Statut: {project.status}
+                </Typography>
+                <Box mt={1}>
+                  <Typography variant="body2">
+                    Annotations: {project.annotations_count || 0}
+                  </Typography>
+                  <Typography variant="body2">
+                    En attente: {project.pending_annotations_count || 0}
+                  </Typography>
+                </Box>
               </CardContent>
+              <CardActions>
+                <ButtonGroup variant="text" size="small">
+                  <Button 
+                    onClick={() => handleViewDetails(project.id)}
+                    color="primary"
+                  >
+                    VOIR LES DÉTAILS
+                  </Button>
+                  <Button 
+                    onClick={() => handleAnnotate(project.id)}
+                    color="secondary"
+                  >
+                    ANNOTER
+                  </Button>
+                </ButtonGroup>
+              </CardActions>
             </Card>
           </Grid>
         ))}
       </Grid>
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Créer un nouveau projet</DialogTitle>
+        <DialogTitle>Nouveau Projet</DialogTitle>
         <DialogContent>
           <TextField
-            fullWidth
+            autoFocus
+            margin="dense"
             label="Nom du projet"
-            margin="normal"
+            fullWidth
             value={newProject.name}
-            onChange={(e) => setNewProject({
-              ...newProject,
-              name: e.target.value
-            })}
+            onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
           />
           <TextField
-            fullWidth
+            margin="dense"
             label="Description"
-            margin="normal"
+            fullWidth
             multiline
             rows={4}
             value={newProject.description}
-            onChange={(e) => setNewProject({
-              ...newProject,
-              description: e.target.value
-            })}
+            onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
