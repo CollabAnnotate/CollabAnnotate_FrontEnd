@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
-  Typography,
   Button,
-  Grid,
-  Paper,
+  TextField,
+  Typography,
   CircularProgress,
   Alert,
   Tabs,
@@ -13,18 +12,29 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemButton,
   IconButton,
-  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Paper,
+  Divider,
+  Snackbar,
+  Grid,
   FormControlLabel,
-  Switch
+  Switch,
 } from '@mui/material';
-import { 
+import {
   Edit as EditIcon,
-  Add as AddIcon,
+  Save as SaveIcon,
+  History as HistoryIcon,
+  Close as CloseIcon,
   Delete as DeleteIcon,
+  Add as AddIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
-  Save as SaveIcon
 } from '@mui/icons-material';
 import { projectsAPI, annotationAPI } from '../../services/api';
 
@@ -45,6 +55,10 @@ const ProjectDetail = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [resizing, setResizing] = useState(null);
+  const [annotationHistory, setAnnotationHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [annotationToDelete, setAnnotationToDelete] = useState(null);
   const imageRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -176,6 +190,68 @@ const ProjectDetail = () => {
     }
   };
 
+  const handleSaveAnnotation = async (editedAnnotation) => {
+    try {
+      let savedAnnotation;
+      
+      // Si c'est une détection YOLO (l'id commence par 'yolo-')
+      if (typeof editedAnnotation.id === 'string' && editedAnnotation.id.startsWith('yolo-')) {
+        // Créer une nouvelle annotation à partir de la détection YOLO
+        const newAnnotationData = {
+          label: editedAnnotation.label,
+          x_min: editedAnnotation.x_min,
+          y_min: editedAnnotation.y_min,
+          x_max: editedAnnotation.x_max,
+          y_max: editedAnnotation.y_max,
+          confidence: editedAnnotation.confidence || 1.0,
+          dataitem: editedAnnotation.dataitem,
+          type: 'manual'
+        };
+        
+        const response = await annotationAPI.createAnnotation(newAnnotationData);
+        savedAnnotation = response.data;
+      } else {
+        // Mettre à jour une annotation existante
+        const annotationData = {
+          label: editedAnnotation.label,
+          x_min: editedAnnotation.x_min,
+          y_min: editedAnnotation.y_min,
+          x_max: editedAnnotation.x_max,
+          y_max: editedAnnotation.y_max,
+          modification_type: 'manual'
+        };
+        
+        const response = await annotationAPI.updateAnnotation(editedAnnotation.id, annotationData);
+        savedAnnotation = response.data;
+      }
+
+      // Mettre à jour la liste des annotations
+      setAnnotations(annotations.map(ann => 
+        (typeof ann.id === 'string' && ann.id.startsWith('yolo-') && ann.id === editedAnnotation.id) || 
+        ann.id === editedAnnotation.id 
+          ? savedAnnotation 
+          : ann
+      ));
+
+      setSelectedAnnotation(savedAnnotation);
+      setEditedAnnotation(null);
+      setError(null);
+      
+      // Message de succès
+      // setSnackbarMessage('Annotation sauvegardée avec succès');
+      // setSnackbarSeverity('success');
+      // setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde de l\'annotation:', error);
+      setError('Erreur lors de la sauvegarde de l\'annotation');
+      
+      // Message d'erreur
+      // setSnackbarMessage('Erreur lors de la sauvegarde de l\'annotation');
+      // setSnackbarSeverity('error');
+      // setSnackbarOpen(true);
+    }
+  };
+
   const handleSaveEdit = () => {
     if (editedAnnotation) {
       // Mettre à jour l'annotation dans le tableau principal
@@ -202,6 +278,40 @@ const ProjectDetail = () => {
     }
     setSelectedAnnotation(null);
     setEditedAnnotation(null);
+  };
+
+  const handleDeleteAnnotation = async () => {
+    try {
+      if (!annotationToDelete) return;
+
+      // Si c'est une détection YOLO qui n'a pas encore été sauvegardée
+      if (typeof annotationToDelete.id === 'string' && annotationToDelete.id.startsWith('yolo-')) {
+        setAnnotations(annotations.filter(ann => ann.id !== annotationToDelete.id));
+      } else {
+        // Supprimer l'annotation de la base de données
+        await annotationAPI.deleteAnnotation(annotationToDelete.id);
+        setAnnotations(annotations.filter(ann => ann.id !== annotationToDelete.id));
+      }
+
+      // Réinitialiser la sélection si l'annotation supprimée était sélectionnée
+      if (selectedAnnotation?.id === annotationToDelete.id) {
+        setSelectedAnnotation(null);
+        setEditedAnnotation(null);
+      }
+
+      // Message de succès
+      // setSnackbarMessage('Annotation supprimée avec succès');
+      // setSnackbarSeverity('success');
+      // setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      // setSnackbarMessage('Erreur lors de la suppression de l\'annotation');
+      // setSnackbarSeverity('error');
+      // setSnackbarOpen(true);
+    } finally {
+      setDeleteDialogOpen(false);
+      setAnnotationToDelete(null);
+    }
   };
 
   const fetchProjectData = useCallback(async () => {
@@ -347,15 +457,18 @@ const ProjectDetail = () => {
   const handleImageSelect = async (image) => {
     setSelectedImage(image);
     setCurrentTab(1); // Basculer vers l'onglet Annotations
+    setAnnotations([]); // Réinitialiser les annotations avant le chargement
+    setSelectedAnnotation(null); // Réinitialiser l'annotation sélectionnée
+    setEditedAnnotation(null); // Réinitialiser l'annotation en cours d'édition
     
     // Créer l'URL de prévisualisation
     const imageUrl = `${process.env.REACT_APP_API_URL}${image.file}`;
     setImagePreview(imageUrl);
     
     try {
-      // Récupérer les annotations existantes
+      // Récupérer les annotations existantes pour cette image spécifique
       const annotationsRes = await annotationAPI.getAnnotations(image.id);
-      setAnnotations(annotationsRes.data);
+      const existingAnnotations = annotationsRes.data || [];
       
       // Appeler la détection YOLO
       const response = await projectsAPI.detectObjects(id, {
@@ -363,19 +476,258 @@ const ProjectDetail = () => {
       });
       
       // Fusionner les détections avec les annotations existantes
-      const yoloAnnotations = response.data.map(detection => ({
+      const yoloAnnotations = (response.data || []).map(detection => ({
         ...detection,
         id: `yolo-${Date.now()}-${Math.random()}`,
         type: 'yolo',
-        data_item: image.id
+        dataitem: image.id,
+        confidence: detection.confidence || 1.0
       }));
       
-      setAnnotations(prev => [...prev, ...yoloAnnotations]);
+      setAnnotations([...existingAnnotations, ...yoloAnnotations]);
     } catch (error) {
       console.error('Erreur lors du chargement des annotations:', error);
       setError('Erreur lors du chargement des annotations');
     }
   };
+
+  const loadAnnotationHistory = async (annotationId) => {
+    try {
+      const response = await annotationAPI.getAnnotationHistory(annotationId);
+      setAnnotationHistory(response.data);
+      setShowHistory(true);
+    } catch (error) {
+      console.error('Erreur lors du chargement de l\'historique:', error);
+      setError('Erreur lors du chargement de l\'historique');
+    }
+  };
+
+  const restoreAnnotationVersion = async (history) => {
+    try {
+      // Préparer les données de l'annotation restaurée
+      const restoredData = {
+        label: history.previous_label,
+        x_min: history.previous_x_min,
+        y_min: history.previous_y_min,
+        x_max: history.previous_x_max,
+        y_max: history.previous_y_max,
+        modification_type: 'restore'
+      };
+
+      // Mettre à jour l'annotation dans la base de données
+      const response = await annotationAPI.updateAnnotation(selectedAnnotation.id, restoredData);
+      const updatedAnnotation = response.data;
+
+      // Mettre à jour la liste des annotations
+      setAnnotations(annotations.map(ann => 
+        ann.id === selectedAnnotation.id ? updatedAnnotation : ann
+      ));
+
+      // Fermer la boîte de dialogue d'historique
+      setShowHistory(false);
+    
+      // Mettre à jour l'annotation sélectionnée
+      setSelectedAnnotation(updatedAnnotation);
+      setEditedAnnotation(updatedAnnotation);
+    
+      // Basculer vers l'onglet d'annotation
+      setCurrentTab(1);
+    
+      // Message de succès
+      // setSnackbarMessage('Version restaurée avec succès');
+      // setSnackbarSeverity('success');
+      // setSnackbarOpen(true);
+
+    } catch (error) {
+      console.error('Erreur lors de la restauration:', error);
+      // setSnackbarMessage('Erreur lors de la restauration de la version');
+      // setSnackbarSeverity('error');
+      // setSnackbarOpen(true);
+    }
+  };
+
+  // Composant pour afficher l'historique
+  const HistoryDialog = () => (
+    <Dialog 
+      open={showHistory} 
+      onClose={() => setShowHistory(false)} 
+      maxWidth="md" 
+      fullWidth
+      PaperProps={{
+        sx: {
+          maxHeight: '80vh'
+        }
+      }}
+    >
+      <DialogTitle>
+        Historique des modifications
+        <IconButton
+          aria-label="close"
+          onClick={() => setShowHistory(false)}
+          sx={{ position: 'absolute', right: 8, top: 8 }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent>
+        {annotationHistory.length === 0 ? (
+          <Typography variant="body1" sx={{ textAlign: 'center', py: 2 }}>
+            Aucune modification n'a été enregistrée pour cette annotation.
+          </Typography>
+        ) : (
+          <List>
+            {annotationHistory.map((history, index) => (
+              <ListItem 
+                key={history.id} 
+                divider={index < annotationHistory.length - 1}
+                sx={{ 
+                  flexDirection: 'column', 
+                  alignItems: 'flex-start',
+                  backgroundColor: index % 2 === 0 ? 'rgba(0, 0, 0, 0.03)' : 'transparent',
+                  borderRadius: 1,
+                  my: 1,
+                  p: 2
+                }}
+              >
+                <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Box>
+                    <Typography variant="subtitle1" component="span" sx={{ fontWeight: 'bold' }}>
+                      {history.modified_by_username}
+                    </Typography>
+                    <Typography variant="body2" component="span" sx={{ ml: 1, color: 'text.secondary' }}>
+                      ({history.modified_by_email})
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    {new Date(history.modified_at).toLocaleString()}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ width: '100%' }}>
+                  <Typography variant="body1" gutterBottom>
+                    Type de modification : {
+                      history.modification_type === 'create' ? 'Création' :
+                      history.modification_type === 'update' ? 'Mise à jour' :
+                      history.modification_type === 'yolo_edit' ? 'Édition YOLO' :
+                      history.modification_type
+                    }
+                  </Typography>
+
+                  <Box sx={{ mt: 1, bgcolor: 'background.paper', p: 1, borderRadius: 1 }}>
+                    <Typography variant="body2" gutterBottom>
+                      Valeurs :
+                    </Typography>
+                    <Box sx={{ pl: 2 }}>
+                      <Typography variant="body2">
+                        • Label : {history.previous_label}
+                      </Typography>
+                      <Typography variant="body2">
+                        • Position : ({Math.round(history.previous_x_min * 100)}%, {Math.round(history.previous_y_min * 100)}%) - 
+                        ({Math.round(history.previous_x_max * 100)}%, {Math.round(history.previous_y_max * 100)}%)
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+
+                {history.modification_type !== 'create' && (
+                  <Button 
+                    onClick={() => restoreAnnotationVersion(history)}
+                    variant="contained" 
+                    size="small"
+                    startIcon={<HistoryIcon />}
+                    sx={{ mt: 2 }}
+                    color="secondary"
+                  >
+                    Restaurer cette version
+                  </Button>
+                )}
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+
+  const DeleteConfirmationDialog = () => (
+    <Dialog
+      open={deleteDialogOpen}
+      onClose={() => setDeleteDialogOpen(false)}
+    >
+      <DialogTitle>Confirmer la suppression</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Êtes-vous sûr de vouloir supprimer cette annotation ? Cette action est irréversible.
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
+          Annuler
+        </Button>
+        <Button onClick={handleDeleteAnnotation} color="error" variant="contained">
+          Supprimer
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
+  const renderAnnotationsList = () => (
+    <List>
+      {annotations.map((annotation) => (
+        <ListItem
+          key={annotation.id}
+          selected={selectedAnnotation?.id === annotation.id}
+          sx={{
+            cursor: 'pointer',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.04)',
+            },
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pr: 1
+          }}
+        >
+          <ListItemButton
+            onClick={() => handleAnnotationEdit(annotation)}
+            sx={{ flexGrow: 1 }}
+          >
+            <ListItemText
+              primary={`${annotation.label} ${typeof annotation.id === 'string' && annotation.id.startsWith('yolo-') ? '(YOLO)' : ''}`}
+              secondary={`Confiance: ${Math.round(annotation.confidence * 100)}%`}
+            />
+          </ListItemButton>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <IconButton
+              size="small"
+              onClick={() => {
+                setAnnotationToDelete(annotation);
+                setDeleteDialogOpen(true);
+              }}
+              color="error"
+              title="Supprimer l'annotation"
+            >
+              <DeleteIcon />
+            </IconButton>
+            {!annotation.id.toString().startsWith('yolo-') && (
+              <IconButton
+                size="small"
+                onClick={() => {
+                  setSelectedAnnotation(annotation);
+                  loadAnnotationHistory(annotation.id);
+                  setShowHistory(true);
+                }}
+                color="primary"
+                title="Voir l'historique"
+              >
+                <HistoryIcon />
+              </IconButton>
+            )}
+          </Box>
+        </ListItem>
+      ))}
+    </List>
+  );
 
   if (loading) return <CircularProgress />;
   if (error) return <Alert severity="error">{error}</Alert>;
@@ -568,27 +920,23 @@ const ProjectDetail = () => {
                               bottom: 0
                             }}
                           >
-                            {annotations.map((annotation, index) => {
-                              const isSelected = selectedAnnotation?.id === annotation.id;
-                              const annotationToShow = isSelected ? editedAnnotation : annotation;
+                            {annotations && annotations.map((annotation, index) => {
+                              if (!annotation || !annotation.x_min) return null;
                               
                               return (
                                 <div
                                   key={index}
+                                  className="annotation-box"
                                   style={{
                                     position: 'absolute',
-                                    left: `${annotationToShow.x_min * 100}%`,
-                                    top: `${annotationToShow.y_min * 100}%`,
-                                    width: `${(annotationToShow.x_max - annotationToShow.x_min) * 100}%`,
-                                    height: `${(annotationToShow.y_max - annotationToShow.y_min) * 100}%`,
+                                    left: `${annotation.x_min * 100}%`,
+                                    top: `${annotation.y_min * 100}%`,
+                                    width: `${(annotation.x_max - annotation.x_min) * 100}%`,
+                                    height: `${(annotation.y_max - annotation.y_min) * 100}%`,
                                     border: '2px solid red',
-                                    backgroundColor: 'rgba(255, 0, 0, 0.1)',
-                                    cursor: isSelected ? 'move' : 'pointer',
-                                    zIndex: isSelected ? 2 : 1
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAnnotationEdit(annotation);
+                                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                                    cursor: 'move',
+                                    zIndex: selectedAnnotation?.id === annotation.id ? 2 : 1
                                   }}
                                   onMouseDown={(e) => handleBoxMouseDown(e, annotation)}
                                 >
@@ -603,9 +951,9 @@ const ProjectDetail = () => {
                                     borderRadius: '3px',
                                     zIndex: 3
                                   }}>
-                                    {annotationToShow.label} ({Math.round(annotationToShow.confidence * 100)}%)
+                                    {annotation.label} ({Math.round(annotation.confidence * 100)}%)
                                   </div>
-                                  {isSelected && (
+                                  {selectedAnnotation?.id === annotation.id && (
                                     <>
                                       <div 
                                         className="resize-handle nw" 
@@ -700,23 +1048,7 @@ const ProjectDetail = () => {
                         </Typography>
                         
                         {/* Liste des annotations */}
-                        <List>
-                          {annotations.map((annotation) => (
-                            <ListItem
-                              key={annotation.id}
-                              secondaryAction={
-                                <IconButton edge="end" onClick={() => handleAnnotationEdit(annotation)}>
-                                  <EditIcon />
-                                </IconButton>
-                              }
-                            >
-                              <ListItemText
-                                primary={annotation.label}
-                                secondary={`Confiance: ${Math.round(annotation.confidence * 100)}%`}
-                              />
-                            </ListItem>
-                          ))}
-                        </List>
+                        {renderAnnotationsList()}
 
                         {/* Formulaire d'édition */}
                         {selectedAnnotation && editedAnnotation && (
@@ -813,7 +1145,7 @@ const ProjectDetail = () => {
                                 fullWidth
                                 variant="contained"
                                 color="primary"
-                                onClick={handleSaveEdit}
+                                onClick={() => handleSaveAnnotation(editedAnnotation)}
                                 startIcon={<SaveIcon />}
                               >
                                 Sauvegarder
@@ -867,6 +1199,21 @@ const ProjectDetail = () => {
           )}
         </Grid>
       </Grid>
+
+      {selectedAnnotation && (
+        <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => loadAnnotationHistory(selectedAnnotation.id)}
+            startIcon={<HistoryIcon />}
+          >
+            Voir l'historique
+          </Button>
+        </Box>
+      )}
+      
+      <HistoryDialog />
+      <DeleteConfirmationDialog />
     </Box>
   );
 };

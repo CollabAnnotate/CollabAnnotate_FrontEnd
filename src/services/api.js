@@ -108,6 +108,11 @@ export const projectsAPI = {
 
 // API Annotations
 export const annotationAPI = {
+  getAnnotations: (dataitemId) => api.get(`/annotations/?dataitem=${dataitemId}`),
+  createAnnotation: (data) => api.post('/annotations/', data),
+  updateAnnotation: (id, data) => api.patch(`/annotations/${id}/`, data),
+  deleteAnnotation: (id) => api.delete(`/annotations/${id}/`),
+  getAnnotationHistory: (id) => api.get(`/annotation-history/?annotation=${id}`),
   detectObjects: (imageFile) => {
     const formData = new FormData();
     formData.append('image', imageFile);
@@ -117,14 +122,6 @@ export const annotationAPI = {
       }
     });
   },
-  createAnnotation: (data) => api.post('annotations/', data),
-  getAnnotations: (imageId) => api.get(`annotations/?image=${imageId}`),
-  updateAnnotation: (id, data) => api.patch(`annotations/${id}/`, {
-    ...data,
-    modification_type: 'manual_edit'
-  }),
-  deleteAnnotation: (id) => api.delete(`annotations/${id}/`),
-  getAnnotationHistory: (id) => api.get(`annotations/${id}/history/`),
   validateAnnotation: (id, data) => api.post(`annotations/${id}/validate/`, data),
   getPendingValidations: () => api.get('annotations/review/'),
 };
