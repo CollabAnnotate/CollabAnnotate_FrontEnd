@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   AppBar,
@@ -6,14 +5,19 @@ import {
   Typography,
   IconButton,
   Box,
-  Avatar,
   Menu,
-  MenuItem
+  MenuItem,
+  Avatar,
+  Tooltip
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  AccountCircle,
-  ExitToApp as LogoutIcon
+  AccountCircle as AccountCircleIcon,
+  Person as PersonIcon,
+  ExitToApp as LogoutIcon,
+  Settings as SettingsIcon,
+  Dashboard as DashboardIcon,
+  Image as ImageIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -34,14 +38,22 @@ const Navbar = ({ toggleSidebar }) => {
   };
 
   const handleLogout = () => {
+    handleClose();
     dispatch(logout());
     navigate('/login');
   };
 
-  const handleProfile = () => {
+  const handleNavigation = (path) => {
     handleClose();
-    navigate('/profile');
+    navigate(path);
   };
+
+  const menuItems = [
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: 'Annotation', icon: <ImageIcon />, path: '/annotation' },
+    { text: 'Mon Profil', icon: <PersonIcon />, path: '/profile' },
+    { text: 'Paramètres', icon: <SettingsIcon />, path: '/settings' },
+  ];
 
   return (
     <AppBar position="fixed">
@@ -55,7 +67,15 @@ const Navbar = ({ toggleSidebar }) => {
           <MenuIcon />
         </IconButton>
 
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Typography 
+          variant="h6" 
+          component="div" 
+          sx={{ 
+            flexGrow: 1,
+            cursor: 'pointer'
+          }}
+          onClick={() => navigate('/')}
+        >
           LabelFlow
         </Typography>
 
@@ -64,25 +84,62 @@ const Navbar = ({ toggleSidebar }) => {
             {user?.username}
           </Typography>
           
-          <IconButton
-            onClick={handleMenu}
-            color="inherit"
-          >
-            <Avatar sx={{ width: 32, height: 32 }}>
-              <AccountCircle />
-            </Avatar>
-          </IconButton>
+          <Tooltip title="Menu utilisateur">
+            <IconButton
+              onClick={handleMenu}
+              color="inherit"
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }
+              }}
+            >
+              <Avatar 
+                sx={{ 
+                  width: 32, 
+                  height: 32,
+                  bgcolor: 'secondary.main'
+                }}
+              >
+                {user?.username?.charAt(0)?.toUpperCase() || <AccountCircleIcon />}
+              </Avatar>
+            </IconButton>
+          </Tooltip>
 
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleClose}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            PaperProps={{
+              elevation: 3,
+              sx: {
+                mt: 1,
+                '& .MuiMenuItem-root': {
+                  py: 1,
+                  px: 2
+                }
+              }
+            }}
           >
-            <MenuItem onClick={handleProfile}>
-              Mon profil
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>
-              <LogoutIcon sx={{ mr: 1 }} />
+            {menuItems.map((item, index) => (
+              <MenuItem key={index} onClick={() => handleNavigation(item.path)}>
+                {item.icon}
+                {item.text}
+              </MenuItem>
+            ))}
+            <MenuItem 
+              onClick={handleLogout}
+              sx={{ 
+                color: 'error.main',
+                '&:hover': {
+                  backgroundColor: 'error.light',
+                  color: 'error.contrastText'
+                }
+              }}
+            >
+              <LogoutIcon sx={{ mr: 2 }} />
               Déconnexion
             </MenuItem>
           </Menu>

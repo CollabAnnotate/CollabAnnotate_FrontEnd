@@ -16,7 +16,47 @@ api.interceptors.request.use(config => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+}, error => {
+  return Promise.reject(error);
 });
+
+// Gestion des erreurs de réponse
+api.interceptors.response.use(
+  response => response,
+  async error => {
+    const originalRequest = error.config;
+    
+    // Si l'erreur est 401 et que nous n'avons pas déjà tenté de rafraîchir le token
+    if (error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        // Tentative de rafraîchissement du token
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (refreshToken) {
+          const response = await authAPI.refreshToken({ refresh: refreshToken });
+          const newToken = response.data.access;
+          
+          // Mise à jour du token dans le localStorage
+          localStorage.setItem('token', newToken);
+          
+          // Mise à jour du header d'autorisation pour la requête originale
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          
+          // Réessayer la requête originale avec le nouveau token
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        // En cas d'échec du rafraîchissement, déconnexion
+        localStorage.removeItem('token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 // API Auth
 export const authAPI = {
@@ -93,8 +133,12 @@ export const annotationAPI = {
 export const usersAPI = {
   getUsers: () => api.get('users/'),
   getCurrentUser: () => api.get('users/me/'),
-  updateProfile: (data) => api.patch('users/me/', data),
-  changePassword: (data) => api.post('users/change-password/', data),
+  updateProfile: (data) => api.patch('users/me/', data, {
+    headers: {
+      'Content-Type': data instanceof FormData ? 'multipart/form-data' : 'application/json'
+    }
+  }),
+  changePassword: (data) => api.post('users/me/change-password/', data)
 };
 
 // API Datasets

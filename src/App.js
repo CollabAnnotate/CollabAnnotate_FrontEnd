@@ -14,12 +14,13 @@ import Register from './components/auth/Register';
 // Main Components
 import Dashboard from './components/dashboard/Dashboard';
 import ImageAnnotator from './components/annotation/ImageAnnotator';
+import AnnotationPage from './components/annotation/AnnotationPage';
 import RevisionInterface from './components/revision/RevisionInterface';
 import ReportGeneration from './components/reports/ReportGeneration';
 import UserManagement from './components/users/UserManagement';
 import ProjectList from './components/projects/ProjectList';
 import ProjectDetail from './components/projects/ProjectDetail';
-import UserProfile from './components/users/UserProfile';
+import UserProfile from './components/profile/UserProfile';
 import Settings from './components/settings/Settings';
 
 const App = () => {
@@ -83,6 +84,16 @@ const App = () => {
               element={
                 <PrivateRoute>
                   <Dashboard />
+                </PrivateRoute>
+              }
+            />
+
+            {/* Route Annotation */}
+            <Route
+              path="/annotation"
+              element={
+                <PrivateRoute>
+                  <AnnotationPage />
                 </PrivateRoute>
               }
             />
@@ -166,7 +177,7 @@ const App = () => {
             />
 
             {/* Redirection par défaut vers le dashboard */}
-            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
         </Box>
