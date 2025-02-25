@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   TextField,
@@ -18,11 +18,13 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { PhotoCamera } from '@mui/icons-material';
 import { usersAPI } from '../../services/api';
-import { setCredentials } from '../../store/authSlice';
+import { updateUser, selectCurrentUser, selectAuthStatus, selectAuthError } from '../../store/authSlice';
 
 const UserProfile = () => {
   const dispatch = useDispatch();
-  const { user: currentUser } = useSelector((state) => state.auth);
+  const currentUser = useSelector(selectCurrentUser);
+  const status = useSelector(selectAuthStatus);
+  const error = useSelector(selectAuthError);
   const [formData, setFormData] = useState({
     username: currentUser?.username || '',
     email: currentUser?.email || '',
@@ -32,8 +34,6 @@ const UserProfile = () => {
     bio: currentUser?.bio || '',
     profile_picture: null
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [passwordData, setPasswordData] = useState({
     current_password: '',
@@ -69,42 +69,24 @@ const UserProfile = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setLoading(true);
-    setError('');
     setSuccess('');
 
-    try {
-      const data = new FormData();
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== null && formData[key] !== '') {
-          data.append(key, formData[key]);
-        }
-      });
+    const data = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (formData[key] !== null && formData[key] !== '') {
+        data.append(key, formData[key]);
+      }
+    });
 
-      const response = await usersAPI.updateProfile(data);
-      dispatch(setCredentials({
-        user: response.data,
-        token: localStorage.getItem('token'),
-        role: response.data.role
-      }));
+    const resultAction = await dispatch(updateUser(data));
+    if (updateUser.fulfilled.match(resultAction)) {
       setSuccess('Profil mis à jour avec succès');
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du profil:', error);
-      setError('Erreur lors de la mise à jour du profil');
-    } finally {
-      setLoading(false);
     }
   };
 
   const handlePasswordSubmit = async (event) => {
     event.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
-    
     if (passwordData.new_password !== passwordData.confirm_password) {
-      setError('Les mots de passe ne correspondent pas');
-      setLoading(false);
       return;
     }
 
@@ -113,25 +95,27 @@ const UserProfile = () => {
         current_password: passwordData.current_password,
         new_password: passwordData.new_password
       });
-      setSuccess('Mot de passe changé avec succès');
+      setSuccess('Mot de passe mis à jour avec succès');
       setPasswordData({
         current_password: '',
         new_password: '',
         confirm_password: ''
       });
-    } catch (error) {
-      console.error('Erreur lors du changement de mot de passe:', error);
-      setError('Erreur lors du changement de mot de passe');
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error('Erreur lors du changement de mot de passe:', err);
     }
   };
 
   if (!currentUser) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
-      </Box>
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+          <CircularProgress size={40} />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Chargement du profil...
+          </Typography>
+        </Paper>
+      </Container>
     );
   }
 
@@ -143,7 +127,7 @@ const UserProfile = () => {
         </Typography>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+          <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
@@ -183,6 +167,7 @@ const UserProfile = () => {
                     startIcon={<PhotoCamera />}
                     size="small"
                     sx={{ mt: 1 }}
+                    disabled={status === 'loading'}
                   >
                     Changer la photo
                   </Button>
@@ -198,6 +183,7 @@ const UserProfile = () => {
                 value={formData.first_name}
                 onChange={handleChange}
                 variant="outlined"
+                disabled={status === 'loading'}
               />
             </Grid>
 
@@ -209,6 +195,7 @@ const UserProfile = () => {
                 value={formData.last_name}
                 onChange={handleChange}
                 variant="outlined"
+                disabled={status === 'loading'}
               />
             </Grid>
 
@@ -221,6 +208,7 @@ const UserProfile = () => {
                 onChange={handleChange}
                 required
                 variant="outlined"
+                disabled={status === 'loading'}
               />
             </Grid>
 
@@ -234,6 +222,7 @@ const UserProfile = () => {
                 onChange={handleChange}
                 required
                 variant="outlined"
+                disabled={status === 'loading'}
               />
             </Grid>
 
@@ -264,6 +253,7 @@ const UserProfile = () => {
                 onChange={handleChange}
                 variant="outlined"
                 placeholder="Parlez-nous un peu de vous..."
+                disabled={status === 'loading'}
               />
             </Grid>
 
@@ -274,9 +264,9 @@ const UserProfile = () => {
                 color="primary" 
                 fullWidth
                 size="large"
-                disabled={loading}
+                disabled={status === 'loading'}
               >
-                {loading ? 'Sauvegarde en cours...' : 'Sauvegarder les modifications'}
+                {status === 'loading' ? 'Sauvegarde en cours...' : 'Sauvegarder les modifications'}
               </Button>
             </Grid>
           </Grid>
@@ -299,6 +289,7 @@ const UserProfile = () => {
                   onChange={handlePasswordChange}
                   required
                   variant="outlined"
+                  disabled={status === 'loading'}
                 />
               </Grid>
 
@@ -312,6 +303,7 @@ const UserProfile = () => {
                   onChange={handlePasswordChange}
                   required
                   variant="outlined"
+                  disabled={status === 'loading'}
                 />
               </Grid>
 
@@ -325,6 +317,7 @@ const UserProfile = () => {
                   onChange={handlePasswordChange}
                   required
                   variant="outlined"
+                  disabled={status === 'loading'}
                 />
               </Grid>
 
@@ -335,9 +328,12 @@ const UserProfile = () => {
                   color="secondary" 
                   fullWidth
                   size="large"
-                  disabled={loading}
+                  disabled={status === 'loading' || 
+                           !passwordData.current_password || 
+                           !passwordData.new_password ||
+                           passwordData.new_password !== passwordData.confirm_password}
                 >
-                  {loading ? 'Modification en cours...' : 'Changer le mot de passe'}
+                  {status === 'loading' ? 'Modification en cours...' : 'Changer le mot de passe'}
                 </Button>
               </Grid>
             </Grid>

@@ -55,7 +55,7 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const response = await authAPI.register({
+      await authAPI.register({
         username: formData.username,
         email: formData.email,
         password: formData.password,
@@ -63,38 +63,19 @@ const Register = () => {
         role: formData.role
       });
 
-      if (response.data.token) {
-        // Store tokens in localStorage
-        localStorage.setItem('token', response.data.token.access);
-        localStorage.setItem('refresh_token', response.data.token.refresh);
-        
-        // Update API headers
-        api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token.access}`;
-
-        // Update Redux store
-        dispatch(setCredentials({
-          token: response.data.token.access,
-          refresh: response.data.token.refresh,
-          user: response.data.user,
-          role: response.data.user.role,
-        }));
-
-        navigate('/dashboard');
-      } else {
-        navigate('/login', { 
-          state: { message: 'Inscription réussie ! Vous pouvez maintenant vous connecter.' }
-        });
-      }
+      // Rediriger vers la page de connexion avec un message de succès
+      navigate('/login', { 
+        state: { 
+          message: 'Inscription réussie ! Vous pouvez maintenant vous connecter.',
+          type: 'success'
+        }
+      });
+      
     } catch (err) {
       const errorMessage = err.response?.data?.errors 
         ? Object.values(err.response.data.errors).flat().join(', ')
         : err.response?.data?.message || 'Erreur lors de l\'inscription';
       setError(errorMessage);
-      
-      // Clean up any existing tokens on error
-      localStorage.removeItem('token');
-      localStorage.removeItem('refresh_token');
-      api.defaults.headers.common['Authorization'] = null;
     } finally {
       setLoading(false);
     }

@@ -1,11 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { thunk } from 'redux-thunk';
 import authReducer from './authSlice';
 
-export const store = configureStore({
+const store = configureStore({
   reducer: {
-    auth: authReducer,
+    auth: authReducer
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(thunk)
+    getDefaultMiddleware({
+      serializableCheck: {
+        // Ignore ces actions pour la vérification de sérialisation
+        ignoredActions: ['auth/setCredentials', 'auth/logout'],
+      },
+    }),
 });
+
+export default store;

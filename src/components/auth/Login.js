@@ -1,7 +1,6 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import api from "../../services/api";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
   Paper,
@@ -11,21 +10,22 @@ import {
   Alert,
   CircularProgress,
   Container,
+  Divider
 } from "@mui/material";
-import { authAPI } from "../../services/api";
-import { setCredentials } from "../../store/authSlice";
-
+import { loginUser, selectAuthStatus, selectAuthError } from "../../store/authSlice";
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
   });
+
+  const status = useSelector(selectAuthStatus);
+  const error = useSelector(selectAuthError);
+  const [successMessage, setSuccessMessage] = useState(location.state?.message || "");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,142 +38,102 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!credentials.username || !credentials.password) {
-      setError('Veuillez remplir tous les champs');
       return;
     }
 
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await authAPI.login(credentials);
-      const data = response.data;
-      
-      // Check if we have either the legacy format or the new format
-      const token = data.token || data.access;
-      const user = data.user || {
-        username: credentials.username,
-        role: data.role || 'annotateur'
-      };
-      
-      if (!token) {
-        throw new Error('Format de réponse invalide: token manquant');
-      }
-      
-      // Store tokens in localStorage
-      localStorage.setItem('token', token.access);
-      localStorage.setItem('refresh_token', token.refresh);
-      
-      // Set authorization header for subsequent requests
-      api.defaults.headers.common['Authorization'] = `Bearer ${token.access}`;
-      
-      // Update Redux store with user data and tokens
-      dispatch(
-        setCredentials({
-          token: token.access,
-          refresh: token.refresh,
-          user: user,
-          role: user.role,
-        })
-      );
-
-      // Navigate to dashboard or previous location
-      navigate(location.state?.from || '/dashboard');
-    } catch (err) {
-      console.error('Login error:', err);
-      setError(
-        err.response?.data?.detail ||
-        err.response?.data?.message ||
-        err.message ||
-        'Identifiants incorrects. Veuillez vérifier votre nom d\'utilisateur et mot de passe.'
-      );
-      // Clean up any existing tokens
-      localStorage.removeItem('token');
-      localStorage.removeItem('refresh_token');
-      api.defaults.headers.common['Authorization'] = null;
-    } finally {
-      setLoading(false);
+    const resultAction = await dispatch(loginUser(credentials));
+    
+    if (loginUser.fulfilled.match(resultAction)) {
+      navigate('/dashboard', { replace: true });
     }
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container component="main" maxWidth="xs">
       <Box
         sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, width: "100%" }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center">
-            LabelFlow
+        <Paper
+          elevation={3}
+          sx={{
+            padding: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
+          <Typography component="h1" variant="h5" gutterBottom>
+            Connexion
           </Typography>
 
-          {location.state?.message && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              {location.state.message}
+          {successMessage && (
+            <Alert severity="success" sx={{ width: '100%', mb: 2 }}>
+              {successMessage}
             </Alert>
           )}
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {error}
-            </Alert> 
+            </Alert>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
             <TextField
-              fullWidth
-              label="Nom d'utilisateur"
-              variant="outlined"
               margin="normal"
+              required
+              fullWidth
+              id="username"
+              label="Nom d'utilisateur"
+              name="username"
+              autoComplete="username"
+              autoFocus
               value={credentials.username}
               onChange={handleChange}
-              name="username"
-              disabled={loading}
-              autoComplete="username"
+              disabled={status === 'loading'}
             />
-
             <TextField
+              margin="normal"
+              required
               fullWidth
+              name="password"
               label="Mot de passe"
               type="password"
-              variant="outlined"
-              margin="normal"
+              id="password"
+              autoComplete="current-password"
               value={credentials.password}
               onChange={handleChange}
-              name="password"
-              disabled={loading}
-              autoComplete="current-password"
+              disabled={status === 'loading'}
             />
-
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              size="large"
-              sx={{ mt: 3 }}
-              disabled={loading}
+              sx={{ mt: 3, mb: 2 }}
+              disabled={status === 'loading'}
             >
-              {loading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Se connecter"
-              )}
+              {status === 'loading' ? <CircularProgress size={24} /> : "Se connecter"}
             </Button>
 
+            <Divider sx={{ my: 2 }}>ou</Divider>
+
             <Button
+              component={Link}
+              to="/register"
               fullWidth
-              variant="text"
-              onClick={() => navigate("/register")}
-              sx={{ mt: 2 }}
-              disabled={loading}
+              variant="outlined"
+              sx={{ mt: 1 }}
+              disabled={status === 'loading'}
             >
               Créer un compte
             </Button>
-          </form>
+          </Box>
         </Paper>
       </Box>
     </Container>
