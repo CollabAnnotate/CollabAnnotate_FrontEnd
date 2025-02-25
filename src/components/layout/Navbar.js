@@ -1,33 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
   Box,
+  Toolbar,
+  IconButton,
+  Typography,
   Menu,
   MenuItem,
   Avatar,
-  Tooltip
+  Tooltip,
+  Badge,
+  Button,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  AccountCircle as AccountCircleIcon,
-  Person as PersonIcon,
-  ExitToApp as LogoutIcon,
+  Notifications as NotificationsIcon,
+  AccountCircle,
   Settings as SettingsIcon,
-  Dashboard as DashboardIcon,
-  Image as ImageIcon
+  ExitToApp as LogoutIcon,
+  Person as ProfileIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/authSlice';
+import { selectNotifications, selectUnreadCount } from '../../store/notificationsSlice';
 
 const Navbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [notificationsAnchor, setNotificationsAnchor] = useState(null);
   const user = useSelector((state) => state.auth.user);
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const notifications = useSelector(selectNotifications) || [];
+  const unreadCount = useSelector(selectUnreadCount) || 0;
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -37,29 +42,32 @@ const Navbar = ({ toggleSidebar }) => {
     setAnchorEl(null);
   };
 
+  const handleNotificationsClick = (event) => {
+    setNotificationsAnchor(event.currentTarget);
+  };
+
+  const handleNotificationsClose = () => {
+    setNotificationsAnchor(null);
+  };
+
   const handleLogout = () => {
-    handleClose();
     dispatch(logout());
     navigate('/login');
   };
 
-  const handleNavigation = (path) => {
-    handleClose();
-    navigate(path);
-  };
-
-  const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Annotation', icon: <ImageIcon />, path: '/annotation' },
-    { text: 'Mon Profil', icon: <PersonIcon />, path: '/profile' },
-    { text: 'Paramètres', icon: <SettingsIcon />, path: '/settings' },
-  ];
-
   return (
-    <AppBar position="fixed">
+    <AppBar 
+      position="fixed" 
+      sx={{ 
+        zIndex: (theme) => theme.zIndex.drawer + 1,
+        background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+        boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+      }}
+    >
       <Toolbar>
         <IconButton
           color="inherit"
+          aria-label="open drawer"
           edge="start"
           onClick={toggleSidebar}
           sx={{ mr: 2 }}
@@ -67,83 +75,172 @@ const Navbar = ({ toggleSidebar }) => {
           <MenuIcon />
         </IconButton>
 
-        <Typography 
-          variant="h6" 
-          component="div" 
+        <Typography
+          variant="h6"
+          noWrap
+          component="div"
           sx={{ 
             flexGrow: 1,
-            cursor: 'pointer'
+            fontWeight: 'bold',
+            background: 'linear-gradient(45deg, #FFFFFF 30%, #E3F2FD 90%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
           }}
-          onClick={() => navigate('/')}
         >
-          LabelFlow
+          CollabAnnotate
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant="body2" sx={{ mr: 2 }}>
-            {user?.username}
-          </Typography>
-          
-          <Tooltip title="Menu utilisateur">
-            <IconButton
-              onClick={handleMenu}
-              color="inherit"
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* Notifications */}
+          <Tooltip title="Notifications">
+            <IconButton 
+              color="inherit" 
+              onClick={handleNotificationsClick}
               sx={{
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                }
+                  background: 'rgba(255, 255, 255, 0.1)',
+                },
               }}
             >
-              <Avatar 
-                sx={{ 
-                  width: 32, 
-                  height: 32,
-                  bgcolor: 'secondary.main'
-                }}
-              >
-                {user?.username?.charAt(0)?.toUpperCase() || <AccountCircleIcon />}
-              </Avatar>
+              <Badge badgeContent={unreadCount} color="error">
+                <NotificationsIcon />
+              </Badge>
             </IconButton>
           </Tooltip>
 
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-            PaperProps={{
-              elevation: 3,
-              sx: {
-                mt: 1,
-                '& .MuiMenuItem-root': {
-                  py: 1,
-                  px: 2
-                }
-              }
+          {/* Menu utilisateur */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Tooltip title="Menu utilisateur">
+              <IconButton
+                onClick={handleMenu}
+                sx={{
+                  p: 0,
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
+              >
+                <Avatar 
+                  alt={user?.username || 'User'} 
+                  src={user?.avatar}
+                  sx={{ 
+                    width: 40, 
+                    height: 40,
+                    border: '2px solid white',
+                  }}
+                >
+                  {user?.username?.[0]?.toUpperCase() || <AccountCircle />}
+                </Avatar>
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+
+        {/* Menu Notifications */}
+        <Menu
+          anchorEl={notificationsAnchor}
+          open={Boolean(notificationsAnchor)}
+          onClose={handleNotificationsClose}
+          PaperProps={{
+            sx: {
+              mt: 1.5,
+              width: 320,
+              maxHeight: 400,
+              overflow: 'auto',
+            },
+          }}
+        >
+          {notifications.length === 0 ? (
+            <MenuItem disabled>
+              <Typography variant="body2">Aucune notification</Typography>
+            </MenuItem>
+          ) : (
+            notifications.map((notification) => (
+              <MenuItem 
+                key={notification.id}
+                onClick={() => {
+                  handleNotificationsClose();
+                  // Marquer comme lu et rediriger si nécessaire
+                }}
+                sx={{
+                  bgcolor: notification.read ? 'transparent' : 'action.hover',
+                  '&:hover': {
+                    bgcolor: 'action.selected',
+                  },
+                }}
+              >
+                <Box sx={{ width: '100%' }}>
+                  <Typography variant="subtitle2">
+                    {notification.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {notification.message}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {new Date(notification.created_at).toLocaleString()}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))
+          )}
+        </Menu>
+
+        {/* Menu utilisateur */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+          PaperProps={{
+            sx: {
+              mt: 1.5,
+              minWidth: 180,
+            },
+          }}
+        >
+          <MenuItem 
+            onClick={() => {
+              handleClose();
+              navigate('/profile');
+            }}
+            sx={{
+              '&:hover': {
+                bgcolor: 'primary.light',
+                color: 'primary.contrastText',
+              },
             }}
           >
-            {menuItems.map((item, index) => (
-              <MenuItem key={index} onClick={() => handleNavigation(item.path)}>
-                {item.icon}
-                {item.text}
-              </MenuItem>
-            ))}
-            <MenuItem 
-              onClick={handleLogout}
-              sx={{ 
-                color: 'error.main',
-                '&:hover': {
-                  backgroundColor: 'error.light',
-                  color: 'error.contrastText'
-                }
-              }}
-            >
-              <LogoutIcon sx={{ mr: 2 }} />
-              Déconnexion
-            </MenuItem>
-          </Menu>
-        </Box>
+            <ProfileIcon sx={{ mr: 1 }} />
+            <Typography>Profil</Typography>
+          </MenuItem>
+          <MenuItem 
+            onClick={() => {
+              handleClose();
+              navigate('/settings');
+            }}
+            sx={{
+              '&:hover': {
+                bgcolor: 'primary.light',
+                color: 'primary.contrastText',
+              },
+            }}
+          >
+            <SettingsIcon sx={{ mr: 1 }} />
+            <Typography>Paramètres</Typography>
+          </MenuItem>
+          <MenuItem 
+            onClick={handleLogout}
+            sx={{
+              color: 'error.main',
+              '&:hover': {
+                bgcolor: 'error.light',
+                color: 'error.contrastText',
+              },
+            }}
+          >
+            <LogoutIcon sx={{ mr: 1 }} />
+            <Typography>Déconnexion</Typography>
+          </MenuItem>
+        </Menu>
       </Toolbar>
     </AppBar>
   );

@@ -37,6 +37,8 @@ import {
   VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
 import { projectsAPI, annotationAPI } from '../../services/api';
+import ProjectCollaborators from '../collaboration/ProjectCollaborators';
+import ProjectInvitations from '../collaboration/ProjectInvitations';
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -729,6 +731,10 @@ const ProjectDetail = () => {
     </List>
   );
 
+  const handleTabChange = (event, newValue) => {
+    setCurrentTab(newValue);
+  };
+
   if (loading) return <CircularProgress />;
   if (error) return <Alert severity="error">{error}</Alert>;
   if (!project) return <Alert severity="info">Projet non trouvé</Alert>;
@@ -738,15 +744,12 @@ const ProjectDetail = () => {
       <Grid container spacing={3}>
         {/* Onglets de navigation */}
         <Grid item xs={12}>
-          <Tabs
-            value={currentTab}
-            onChange={(e, newValue) => setCurrentTab(newValue)}
-            variant="fullWidth"
-            sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
-          >
+          <Tabs value={currentTab} onChange={handleTabChange} sx={{ mb: 3 }}>
             <Tab label="Informations" />
             <Tab label="Images & Annotations" />
             <Tab label="Statistiques" />
+            <Tab label="Collaborateurs" />
+            <Tab label="Invitations" />
           </Tabs>
         </Grid>
 
@@ -1194,8 +1197,24 @@ const ProjectDetail = () => {
                     secondary={stats?.pending_annotations || 0}
                   />
                 </ListItem>
+                <ListItem>
+                  <ListItemText
+                    primary="Collaborateurs"
+                    secondary={stats?.total_collaborators || 0}
+                  />
+                </ListItem>
               </List>
             </Paper>
+          )}
+
+          {/* Onglet Collaborateurs */}
+          {currentTab === 3 && (
+            <ProjectCollaborators projectId={id} />
+          )}
+
+          {/* Onglet Invitations */}
+          {currentTab === 4 && (
+            <ProjectInvitations />
           )}
         </Grid>
       </Grid>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Box, CssBaseline } from '@mui/material';
+import { Box, CssBaseline, ThemeProvider } from '@mui/material';
 import { useSelector } from 'react-redux';
+import theme from './theme';
 
 // Layout Components
 import Navbar from './components/layout/Navbar';
@@ -20,6 +21,7 @@ import ReportGeneration from './components/reports/ReportGeneration';
 import UserManagement from './components/users/UserManagement';
 import ProjectList from './components/projects/ProjectList';
 import ProjectDetail from './components/projects/ProjectDetail';
+import Project from './components/project/Project';
 import UserProfile from './components/profile/UserProfile';
 import Settings from './components/settings/Settings';
 
@@ -43,146 +45,160 @@ const App = () => {
   // Si l'utilisateur n'est pas authentifié, afficher uniquement les routes d'auth
   if (!isAuthenticated) {
     return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="*" element={<Navigate to="/login" />} />
-        </Routes>
-      </BrowserRouter>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </BrowserRouter>
+      </ThemeProvider>
     );
   }
 
   return (
-    <BrowserRouter>
-      <Box sx={{ display: 'flex' }}>
-        <CssBaseline />
-        
-        {/* Navbar */}
-        <Navbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        
-        {/* Sidebar */}
-        <Sidebar 
-          open={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)} 
-        />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <BrowserRouter>
+        <Box sx={{ display: 'flex' }}>
+          
+          {/* Navbar */}
+          <Navbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+          
+          {/* Sidebar */}
+          <Sidebar 
+            open={sidebarOpen} 
+            onClose={() => setSidebarOpen(false)} 
+          />
 
-        {/* Main Content */}
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            p: 3,
-            mt: 8,
-            width: '100%'
-          }}
-        >
-          <Routes>
-            {/* Route Dashboard */}
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              }
-            />
+          {/* Main Content */}
+          <Box
+            component="main"
+            sx={{
+              flexGrow: 1,
+              p: 3,
+              mt: 8,
+              width: '100%'
+            }}
+          >
+            <Routes>
+              {/* Route Dashboard */}
+              <Route
+                path="/dashboard"
+                element={
+                  <PrivateRoute>
+                    <Dashboard />
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Route Annotation */}
-            <Route
-              path="/annotation"
-              element={
-                <PrivateRoute>
-                  <AnnotationPage />
-                </PrivateRoute>
-              }
-            />
+              {/* Route Annotation */}
+              <Route
+                path="/annotation"
+                element={
+                  <PrivateRoute>
+                    <AnnotationPage />
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Routes Projets */}
-            <Route
-              path="/projects"
-              element={
-                <PrivateRoute>
-                  <ProjectList />
-                </PrivateRoute>
-              }
-            />
-            
-            <Route
-              path="/projects/:id"
-              element={
-                <PrivateRoute>
-                  <ProjectDetail />
-                </PrivateRoute>
-              }
-            />
+              {/* Routes Projets */}
+              <Route
+                path="/projects"
+                element={
+                  <PrivateRoute>
+                    <ProjectList />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route
+                path="/projects/:id"
+                element={
+                  <PrivateRoute>
+                    <ProjectDetail />
+                  </PrivateRoute>
+                }
+              />
 
-            <Route
-              path="/projects/:id/annotate"
-              element={
-                <PrivateRoute roles={['annotateur', 'admin']}>
-                  <ImageAnnotator />
-                </PrivateRoute>
-              }
-            />
+              <Route
+                path="/projects/:id/annotate"
+                element={
+                  <PrivateRoute roles={['annotateur', 'admin']}>
+                    <ImageAnnotator />
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Route Révision */}
-            <Route
-              path="/revision"
-              element={
-                <PrivateRoute roles={['verificateur', 'admin']}>
-                  <RevisionInterface />
-                </PrivateRoute>
-              }
-            />
+              <Route
+                path="/projects/:projectId"
+                element={
+                  <PrivateRoute>
+                    <Project />
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Route Rapports */}
-            <Route
-              path="/reports"
-              element={
-                <PrivateRoute roles={['admin']}>
-                  <ReportGeneration />
-                </PrivateRoute>
-              }
-            />
+              {/* Route Révision */}
+              <Route
+                path="/revision"
+                element={
+                  <PrivateRoute roles={['verificateur', 'admin']}>
+                    <RevisionInterface />
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Route Gestion des utilisateurs */}
-            <Route
-              path="/users"
-              element={
-                <PrivateRoute roles={['admin']}>
-                  <UserManagement />
-                </PrivateRoute>
-              }
-            />
+              {/* Route Rapports */}
+              <Route
+                path="/reports"
+                element={
+                  <PrivateRoute roles={['admin']}>
+                    <ReportGeneration />
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Route Profil utilisateur */}
-            <Route
-              path="/profile"
-              element={
-                <PrivateRoute>
-                  <UserProfile />
-                </PrivateRoute>
-              }
-            />
+              {/* Route Gestion des utilisateurs */}
+              <Route
+                path="/users"
+                element={
+                  <PrivateRoute roles={['admin']}>
+                    <UserManagement />
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Route Paramètres */}
-            <Route
-              path="/settings"
-              element={
-                <PrivateRoute>
-                  <Settings />
-                </PrivateRoute>
-              }
-            />
+              {/* Route Profil utilisateur */}
+              <Route
+                path="/profile"
+                element={
+                  <PrivateRoute>
+                    <UserProfile />
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Redirection par défaut vers le dashboard */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" />} />
-          </Routes>
+              {/* Route Paramètres */}
+              <Route
+                path="/settings"
+                element={
+                  <PrivateRoute>
+                    <Settings />
+                  </PrivateRoute>
+                }
+              />
+
+              {/* Redirection par défaut vers le dashboard */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/dashboard" />} />
+            </Routes>
+          </Box>
         </Box>
-      </Box>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 };
 
