@@ -107,7 +107,8 @@ const ProjectList = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [newProject, setNewProject] = useState({
     name: '',
-    description: ''
+    description: '',
+    visibility: 'private'
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -138,10 +139,14 @@ const ProjectList = () => {
     }
 
     try {
-      const response = await projectsAPI.createProject(newProject);
+      const projectData = {
+        ...newProject,
+        visibility: newProject.visibility || 'private'
+      };
+      const response = await projectsAPI.createProject(projectData);
       setOpenDialog(false);
       fetchProjects();
-      setNewProject({ name: '', description: '' });
+      setNewProject({ name: '', description: '', visibility: 'private' });
       // Rediriger vers le nouveau projet
       navigate(`/projects/${response.data.id}`);
     } catch (error) {
@@ -256,6 +261,7 @@ const ProjectList = () => {
             margin="dense"
             label="Nom du projet"
             fullWidth
+            required
             value={newProject.name}
             onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
           />
@@ -268,6 +274,17 @@ const ProjectList = () => {
             value={newProject.description}
             onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
           />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Visibilité</InputLabel>
+            <Select
+              value={newProject.visibility}
+              onChange={(e) => setNewProject({ ...newProject, visibility: e.target.value })}
+              label="Visibilité"
+            >
+              <MenuItem value="private">Privé</MenuItem>
+              <MenuItem value="public">Public</MenuItem>
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Annuler</Button>
