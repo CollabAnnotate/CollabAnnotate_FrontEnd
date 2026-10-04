@@ -22,7 +22,6 @@ import ReportGeneration from './components/reports/ReportGeneration';
 import UserManagement from './components/users/UserManagement';
 import ProjectList from './components/projects/ProjectList';
 import ProjectDetail from './components/projects/ProjectDetail';
-import Project from './components/project/Project';
 import UserProfile from './components/profile/UserProfile';
 import Settings from './components/settings/Settings';
 
@@ -146,15 +145,6 @@ const App = () => {
                 element={
                   <PrivateRoute roles={['annotateur', 'admin']}>
                     <ImageAnnotator />
-                  </PrivateRoute>
-                }
-              />
-
-              <Route
-                path="/projects/:projectId"
-                element={
-                  <PrivateRoute>
-                    <Project />
                   </PrivateRoute>
                 }
               />

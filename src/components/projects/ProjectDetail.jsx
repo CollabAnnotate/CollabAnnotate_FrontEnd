@@ -39,7 +39,6 @@ import {
 import { projectsAPI, annotationAPI } from '../../services/api';
 import ProjectCollaborators from '../collaboration/ProjectCollaborators';
 import ProjectInvitations from '../collaboration/ProjectInvitations';
-import config from '../../config';
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -465,7 +464,7 @@ const ProjectDetail = () => {
     setEditedAnnotation(null); // Réinitialiser l'annotation en cours d'édition
     
     // Créer l'URL de prévisualisation
-    const imageUrl = `${config.API_URL}${image.file}`;
+    const imageUrl = image.image_url;
     setImagePreview(imageUrl);
     
     try {
@@ -862,7 +861,7 @@ const ProjectDetail = () => {
                       >
                         <Box
                           component="img"
-                          src={image.image_url || `${config.API_URL}${image.file}`}
+                          src={image.image_url}
                           alt={`Image ${image.id}`}
                           sx={{
                             width: '100%',
@@ -921,7 +920,7 @@ const ProjectDetail = () => {
                         >
                           <img 
                             ref={imageRef} 
-                            src={selectedImage?.image_url || `${config.API_URL}${selectedImage?.file}`}
+                            src={selectedImage?.image_url}
                             alt="Preview" 
                             style={{
                               maxWidth: '100%',

@@ -195,6 +195,12 @@ export const annotationAPI = {
 };
 
 // API Users
+export const notificationsAPI = {
+  getNotifications: () => api.get('notifications/'),
+  markAsRead: (id) => api.post(`notifications/${id}/mark_as_read/`),
+  markAllAsRead: () => api.post('notifications/mark_all_as_read/'),
+};
+
 export const usersAPI = {
   // Back-office réservé aux administrateurs
   getUsers: () => api.get('admin/users/'),

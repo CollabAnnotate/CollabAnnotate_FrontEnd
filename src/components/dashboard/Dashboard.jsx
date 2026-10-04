@@ -37,7 +37,7 @@ const Dashboard = () => {
       
       // Calculer les statistiques
       const totalAnnotations = projectsResponse.data.reduce(
-        (acc, project) => acc + (project.annotations_count || 0), 
+        (acc, project) => acc + (project.total_annotations || 0), 
         0
       );
       
@@ -45,7 +45,7 @@ const Dashboard = () => {
         totalProjects: projectsResponse.data.length,
         totalAnnotations,
         pendingValidations: projectsResponse.data.reduce(
-          (acc, project) => acc + (project.pending_validations || 0),
+          (acc, project) => acc + (project.pending_annotations || 0),
           0
         )
       });
@@ -162,10 +162,10 @@ const Dashboard = () => {
                     Créé le: {new Date(project.created_at).toLocaleDateString()}
                   </Typography>
                   <Typography variant="body2">
-                    Annotations: {project.annotations_count || 0}
+                    Annotations: {project.total_annotations || 0}
                   </Typography>
                   <Typography variant="body2">
-                    En attente: {project.pending_validations || 0}
+                    En attente: {project.pending_annotations || 0}
                   </Typography>
                 </CardContent>
                 <CardActions>
@@ -178,7 +178,7 @@ const Dashboard = () => {
                   <Button 
                     size="small"
                     color="primary"
-                    onClick={() => navigate(`/annotation/${project.id}`)}
+                    onClick={() => navigate(`/projects/${project.id}/annotate`)}
                   >
                     Annoter
                   </Button>
