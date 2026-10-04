@@ -598,9 +598,6 @@ const ProjectDetail = () => {
                     <Typography variant="subtitle1" component="span" sx={{ fontWeight: 'bold' }}>
                       {history.modified_by_username}
                     </Typography>
-                    <Typography variant="body2" component="span" sx={{ ml: 1, color: 'text.secondary' }}>
-                      ({history.modified_by_email})
-                    </Typography>
                   </Box>
                   <Typography variant="body2" sx={{
                     color: "text.secondary"
