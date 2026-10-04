@@ -21,40 +21,69 @@ api.interceptors.request.use(config => {
   return Promise.reject(error);
 });
 
+// Routes d'authentification : un 401 sur elles ne doit jamais déclencher de refresh
+const AUTH_URLS = ['token/', 'token/refresh/'];
+
+// Refresh en cours, partagé par toutes les requêtes qui reçoivent un 401 en même temps.
+// Le backend fait tourner les refresh tokens et blackliste l'ancien : deux refresh
+// parallèles avec le même token feraient échouer le second.
+let refreshPromise = null;
+
+const refreshAccessToken = () => {
+  if (!refreshPromise) {
+    const refreshToken = localStorage.getItem('refresh_token');
+    refreshPromise = authAPI.refreshToken({ refresh: refreshToken })
+      .then(({ data }) => {
+        localStorage.setItem('token', data.access);
+        // Rotation : l'ancien refresh token est désormais blacklisté
+        if (data.refresh) {
+          localStorage.setItem('refresh_token', data.refresh);
+        }
+        return data.access;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+};
+
+const clearSessionAndRedirect = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user');
+  localStorage.removeItem('role');
+  window.location.href = '/login';
+};
+
 // Gestion des erreurs de réponse
 api.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
-    
-    // Si l'erreur est 401 et que nous n'avons pas déjà tenté de rafraîchir le token
-    if (error.response.status === 401 && !originalRequest._retry) {
+
+    const shouldRefresh =
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !AUTH_URLS.includes(originalRequest.url) &&
+      localStorage.getItem('refresh_token');
+
+    if (shouldRefresh) {
       originalRequest._retry = true;
-      
+
       try {
-        // Tentative de rafraîchissement du token
-        const refreshToken = localStorage.getItem('refresh_token');
-        if (refreshToken) {
-          const response = await authAPI.refreshToken({ refresh: refreshToken });
-          const newToken = response.data.access;
-          
-          // Mise à jour du token dans le localStorage
-          localStorage.setItem('token', newToken);
-          
-          // Mise à jour du header d'autorisation pour la requête originale
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          
-          // Réessayer la requête originale avec le nouveau token
-          return api(originalRequest);
-        }
+        const newToken = await refreshAccessToken();
+        // Réessayer la requête originale avec le nouveau token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
       } catch (refreshError) {
-        // En cas d'échec du rafraîchissement, déconnexion
-        localStorage.removeItem('token');
-        localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
+        // Refresh token expiré ou blacklisté : déconnexion
+        clearSessionAndRedirect();
+        return Promise.reject(refreshError);
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
