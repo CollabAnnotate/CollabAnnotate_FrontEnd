@@ -4,16 +4,16 @@ Interface utilisateur moderne et intuitive pour la plateforme collaborative d'an
 
 ## 🚀 Technologies utilisées
 
-- React.js
-- Material-UI
+- React 19 + Vite
+- Material UI 9
 - Redux Toolkit
 - Axios
 - React Router
 
 ## 📋 Prérequis
 
-- Node.js 14+
-- npm ou yarn
+- Node.js 20.19+ (ou 22.12+)
+- npm
 - Backend CollabAnnotate en cours d'exécution
 
 ## 🛠 Installation
@@ -27,21 +27,17 @@ cd CollabAnnotate_FrontEnd
 2. Installer les dépendances
 ```bash
 npm install
-# ou
-yarn install
 ```
 
-3. Configurer les variables d'environnement
-Créer un fichier `.env` à la racine du projet avec :
+3. (Optionnel) Configurer l'URL de l'API
+Par défaut, l'application appelle `http://localhost:8000/api`. Pour changer cette URL, copier `.env.example` en `.env` et modifier :
 ```
-REACT_APP_API_URL=http://localhost:8000/api
+VITE_API_URL=http://localhost:8000/api
 ```
 
 4. Lancer l'application en mode développement
 ```bash
-npm start
-# ou
-yarn start
+npm run dev
 ```
 
 L'application sera accessible à l'adresse [http://localhost:3000](http://localhost:3000).
@@ -65,10 +61,11 @@ L'application sera accessible à l'adresse [http://localhost:3000](http://localh
 
 ## 🔧 Scripts disponibles
 
-- `npm start` : Lance l'application en mode développement
-- `npm test` : Exécute les tests
-- `npm run build` : Compile l'application pour la production
-- `npm run eject` : Éjecte la configuration CRA (irréversible)
+- `npm run dev` (ou `npm start`) : Lance le serveur de développement Vite
+- `npm test` : Exécute les tests (Vitest, mode watch) ; `npm test -- --run` pour une exécution unique
+- `npm run lint` : Analyse le code avec ESLint
+- `npm run build` : Compile l'application pour la production dans `dist/`
+- `npm run preview` : Sert localement le build de production
 
 ## 🔗 Liens utiles
 
