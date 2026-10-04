@@ -98,6 +98,22 @@ api.interceptors.response.use(
   }
 );
 
+// Transforme une erreur DRF en message lisible. DRF renvoie selon les cas
+// {detail}, {error}, une liste, ou un objet {champ: [messages]}.
+export const getApiErrorMessage = (error, fallback = 'Une erreur est survenue') => {
+  const data = error?.response?.data;
+  if (!data) return fallback;
+  if (typeof data === 'string') return data;
+  if (Array.isArray(data)) return data.join(' ');
+  if (data.detail) return data.detail;
+  if (data.error) return data.error;
+  const messages = Object.entries(data).map(([field, value]) => {
+    const text = Array.isArray(value) ? value.join(' ') : String(value);
+    return field === 'non_field_errors' ? text : `${field} : ${text}`;
+  });
+  return messages.length ? messages.join(' — ') : fallback;
+};
+
 // API Auth
 export const authAPI = {
   login: (credentials) => {
@@ -180,7 +196,12 @@ export const annotationAPI = {
 
 // API Users
 export const usersAPI = {
-  getUsers: () => api.get('users/'),
+  // Back-office réservé aux administrateurs
+  getUsers: () => api.get('admin/users/'),
+  createUser: (data) => api.post('admin/users/', data),
+  updateUser: (id, data) => api.patch(`admin/users/${id}/`, data),
+  deleteUser: (id) => api.delete(`admin/users/${id}/`),
+  // Compte de l'utilisateur connecté
   getCurrentUser: () => api.get('users/me/'),
   updateProfile: (data) => api.patch('users/me/', data, {
     headers: {

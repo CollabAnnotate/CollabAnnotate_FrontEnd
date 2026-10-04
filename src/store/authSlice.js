@@ -5,6 +5,7 @@ import {
   setAccessToken,
   clearAccessToken,
   refreshAccessToken,
+  getApiErrorMessage,
 } from '../services/api';
 
 // Clés de l'ancien stockage des tokens dans le localStorage, à purger
@@ -67,7 +68,7 @@ export const updateUser = createAsyncThunk(
 
       return { user: updatedUser, role: updatedUser.role || 'annotateur' };
     } catch (err) {
-      return rejectWithValue(err.response?.data?.detail || 'Erreur lors de la mise à jour du profil');
+      return rejectWithValue(getApiErrorMessage(err, 'Erreur lors de la mise à jour du profil'));
     }
   }
 );

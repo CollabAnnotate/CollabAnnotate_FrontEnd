@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { PhotoCamera } from '@mui/icons-material';
-import { usersAPI } from '../../services/api';
+import { usersAPI, getApiErrorMessage } from '../../services/api';
 import { updateUser, selectCurrentUser, selectAuthStatus, selectAuthError } from '../../store/authSlice';
 
 const UserProfile = () => {
@@ -35,6 +35,7 @@ const UserProfile = () => {
     profile_picture: null
   });
   const [success, setSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [passwordData, setPasswordData] = useState({
     current_password: '',
     new_password: '',
@@ -86,7 +87,10 @@ const UserProfile = () => {
 
   const handlePasswordSubmit = async (event) => {
     event.preventDefault();
+    setSuccess('');
+    setPasswordError('');
     if (passwordData.new_password !== passwordData.confirm_password) {
+      setPasswordError('La confirmation ne correspond pas au nouveau mot de passe');
       return;
     }
 
@@ -102,7 +106,7 @@ const UserProfile = () => {
         confirm_password: ''
       });
     } catch (err) {
-      console.error('Erreur lors du changement de mot de passe:', err);
+      setPasswordError(getApiErrorMessage(err, 'Erreur lors du changement de mot de passe'));
     }
   };
 
@@ -289,7 +293,13 @@ const UserProfile = () => {
           <Typography variant="h5" gutterBottom color="primary">
             Changer le mot de passe
           </Typography>
-          
+
+          {passwordError && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setPasswordError('')}>
+              {passwordError}
+            </Alert>
+          )}
+
           <form onSubmit={handlePasswordSubmit}>
             <Grid container spacing={3}>
               <Grid size={12}>
