@@ -34,7 +34,7 @@ const RevisionInterface = () => {
   const loadAnnotationsForReview = async () => {
     setLoading(true);
     try {
-      const response = await annotationAPI.getAnnotationsForReview();
+      const response = await annotationAPI.getPendingValidations();
       setAnnotations(response.data);
     } catch (err) {
       setError('Erreur lors du chargement des annotations à réviser');
@@ -67,7 +67,7 @@ const RevisionInterface = () => {
       setComment('');
       setError('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de la validation de l\'annotation');
+      setError(err.response?.data?.error || 'Erreur lors de la validation de l\'annotation');
     } finally {
       setLoading(false);
     }
@@ -76,15 +76,18 @@ const RevisionInterface = () => {
   const renderImage = (annotation) => {
     if (!annotation) return null;
 
+    // Le conteneur prend exactement la taille de l'image : les coordonnées
+    // normalisées (0-1) de la boîte tombent ainsi pile sur l'image.
     return (
-      <Box sx={{ position: 'relative', width: '100%', height: '400px' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ position: 'relative', display: 'inline-block' }}>
         <img
-          src={annotation.image}
-          alt="Image à annoter"
+          src={annotation.image_url}
+          alt={`Annotation ${annotation.label}`}
           style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain'
+            display: 'block',
+            maxWidth: '100%',
+            maxHeight: '400px'
           }}
         />
         {/* Afficher la boîte englobante */}
@@ -99,6 +102,7 @@ const RevisionInterface = () => {
             pointerEvents: 'none'
           }}
         />
+      </Box>
       </Box>
     );
   };
