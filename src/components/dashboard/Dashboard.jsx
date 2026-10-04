@@ -93,19 +93,31 @@ const Dashboard = () => {
 
       {/* Statistiques générales */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 4
+          }}>
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6">Projets</Typography>
             <Typography variant="h3">{stats.totalProjects}</Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 4
+          }}>
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6">Annotations</Typography>
             <Typography variant="h3">{stats.totalAnnotations}</Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 4
+          }}>
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6">En attente</Typography>
             <Typography variant="h3">{stats.pendingValidations}</Typography>
@@ -134,7 +146,12 @@ const Dashboard = () => {
       ) : (
         <Grid container spacing={3}>
           {projects.map((project) => (
-            <Grid item xs={12} md={6} key={project.id}>
+            <Grid
+              key={project.id}
+              size={{
+                xs: 12,
+                md: 6
+              }}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">{project.name}</Typography>

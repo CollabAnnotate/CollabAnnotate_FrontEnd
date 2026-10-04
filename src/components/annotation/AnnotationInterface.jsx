@@ -176,7 +176,7 @@ const AnnotationInterface = () => {
   return (
     <Paper sx={{ p: 2, height: '100%' }}>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
             <Button
               variant={mode === 'view' ? 'contained' : 'outlined'}
@@ -201,12 +201,12 @@ const AnnotationInterface = () => {
           </Box>
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid size={12}>
           {renderAnnotationArea()}
         </Grid>
 
         {/* Liste des annotations */}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant="h6" gutterBottom>
             Annotations
           </Typography>

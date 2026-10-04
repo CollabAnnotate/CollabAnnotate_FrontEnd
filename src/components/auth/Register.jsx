@@ -14,7 +14,6 @@ import {
 } from '@mui/material';
 import { authAPI } from '../../services/api';
 import api from '../../services/api';
-import { setCredentials } from '../../store/authSlice';
 
 const Register = () => { 
   const navigate = useNavigate();

@@ -31,7 +31,7 @@ const ROLE_LABELS = {
   admin: 'Administrateur',
 };
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = config.API_URL;
 
 const ProjectCollaborators = ({ projectId }) => {
   const [collaborators, setCollaborators] = useState([]);

@@ -292,7 +292,11 @@ const AnnotationPage = () => {
         )}
 
         <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 8
+            }}>
             <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
               <input
                 accept="image/*"
@@ -413,7 +417,11 @@ const AnnotationPage = () => {
             )}
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 4
+            }}>
             <Paper elevation={2} sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Annotations
@@ -465,7 +473,9 @@ const AnnotationPage = () => {
                     value={Math.round(editedAnnotation.confidence * 100)}
                     onChange={(e) => handleAnnotationUpdate('confidence', Number(e.target.value) / 100)}
                     margin="normal"
-                    InputProps={{ inputProps: { min: 0, max: 100 } }}
+                    slotProps={{
+                      htmlInput: { min: 0, max: 100 }
+                    }}
                   />
 
                   <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
@@ -473,7 +483,7 @@ const AnnotationPage = () => {
                   </Typography>
                   
                   <Grid container spacing={2}>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <TextField
                         fullWidth
                         label="X Min"
@@ -485,10 +495,12 @@ const AnnotationPage = () => {
                             handleAnnotationUpdate('x_min', value);
                           }
                         }}
-                        InputProps={{ inputProps: { min: 0, max: 99 } }}
+                        slotProps={{
+                          htmlInput: { min: 0, max: 99 }
+                        }}
                       />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <TextField
                         fullWidth
                         label="X Max"
@@ -500,10 +512,12 @@ const AnnotationPage = () => {
                             handleAnnotationUpdate('x_max', value);
                           }
                         }}
-                        InputProps={{ inputProps: { min: 1, max: 100 } }}
+                        slotProps={{
+                          htmlInput: { min: 1, max: 100 }
+                        }}
                       />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <TextField
                         fullWidth
                         label="Y Min"
@@ -515,10 +529,12 @@ const AnnotationPage = () => {
                             handleAnnotationUpdate('y_min', value);
                           }
                         }}
-                        InputProps={{ inputProps: { min: 0, max: 99 } }}
+                        slotProps={{
+                          htmlInput: { min: 0, max: 99 }
+                        }}
                       />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <TextField
                         fullWidth
                         label="Y Max"
@@ -530,7 +546,9 @@ const AnnotationPage = () => {
                             handleAnnotationUpdate('y_max', value);
                           }
                         }}
-                        InputProps={{ inputProps: { min: 1, max: 100 } }}
+                        slotProps={{
+                          htmlInput: { min: 1, max: 100 }
+                        }}
                       />
                     </Grid>
                   </Grid>

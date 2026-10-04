@@ -7,17 +7,18 @@ import {
   Button,
   TextField,
   List,
-  ListItem,
   ListItemText,
   CircularProgress,
   Alert,
-  Divider
+  Divider,
 } from '@mui/material';
 import {
   Check as CheckIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
 import { annotationAPI } from '../../services/api';
+
+import ListItemButton from "@mui/material/ListItemButton";
 
 const RevisionInterface = () => {
   const [loading, setLoading] = useState(false);
@@ -105,7 +106,11 @@ const RevisionInterface = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 8
+          }}>
           <Paper sx={{ p: 2, position: 'relative' }}>
             {loading && (
               <Box sx={{
@@ -127,24 +132,26 @@ const RevisionInterface = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 4
+          }}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Annotations à réviser
             </Typography>
             <List>
               {annotations.map((annotation) => (
-                <ListItem
+                <ListItemButton
                   key={annotation.id}
-                  button
                   selected={selectedAnnotation?.id === annotation.id}
-                  onClick={() => setSelectedAnnotation(annotation)}
-                >
+                  onClick={() => setSelectedAnnotation(annotation)}>
                   <ListItemText
                     primary={`Label: ${annotation.label}`}
                     secondary={`Confiance: ${(annotation.confidence * 100).toFixed(1)}%`}
                   />
-                </ListItem>
+                </ListItemButton>
               ))}
             </List>
 

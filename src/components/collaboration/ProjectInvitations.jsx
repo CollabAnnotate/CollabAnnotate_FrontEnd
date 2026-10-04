@@ -16,7 +16,7 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 import config from '../../config';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = config.API_URL;
 
 const STATUS_LABELS = {
   pending: 'En attente',

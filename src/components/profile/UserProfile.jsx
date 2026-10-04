@@ -140,7 +140,12 @@ const UserProfile = () => {
         
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid item xs={12} display="flex" justifyContent="center">
+            <Grid
+              size={12}
+              sx={{
+                display: "flex",
+                justifyContent: "center"
+              }}>
               <Box sx={{ position: 'relative', textAlign: 'center' }}>
                 <Avatar
                   src={formData.profile_picture ? URL.createObjectURL(formData.profile_picture) : currentUser.profile_picture}
@@ -175,7 +180,11 @@ const UserProfile = () => {
               </Box>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6
+              }}>
               <TextField
                 fullWidth
                 label="Prénom"
@@ -187,7 +196,11 @@ const UserProfile = () => {
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6
+              }}>
               <TextField
                 fullWidth
                 label="Nom"
@@ -199,7 +212,7 @@ const UserProfile = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Nom d'utilisateur"
@@ -212,7 +225,7 @@ const UserProfile = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Email"
@@ -226,7 +239,7 @@ const UserProfile = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <FormControl fullWidth variant="outlined">
                 <InputLabel>Rôle</InputLabel>
                 <Select
@@ -242,7 +255,7 @@ const UserProfile = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Bio"
@@ -257,7 +270,7 @@ const UserProfile = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Button 
                 type="submit" 
                 variant="contained" 
@@ -279,7 +292,7 @@ const UserProfile = () => {
           
           <form onSubmit={handlePasswordSubmit}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   type="password"
@@ -293,7 +306,7 @@ const UserProfile = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   type="password"
@@ -307,7 +320,7 @@ const UserProfile = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   type="password"
@@ -321,7 +334,7 @@ const UserProfile = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Button 
                   type="submit" 
                   variant="contained" 

@@ -141,12 +141,14 @@ const Navbar = ({ toggleSidebar }) => {
           anchorEl={notificationsAnchor}
           open={Boolean(notificationsAnchor)}
           onClose={handleNotificationsClose}
-          PaperProps={{
-            sx: {
-              mt: 1.5,
-              width: 320,
-              maxHeight: 400,
-              overflow: 'auto',
+          slotProps={{
+            paper: {
+              sx: {
+                mt: 1.5,
+                width: 320,
+                maxHeight: 400,
+                overflow: 'auto',
+              },
             },
           }}
         >
@@ -173,10 +175,14 @@ const Navbar = ({ toggleSidebar }) => {
                   <Typography variant="subtitle2">
                     {notification.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" sx={{
+                    color: "text.secondary"
+                  }}>
                     {notification.message}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" sx={{
+                    color: "text.secondary"
+                  }}>
                     {new Date(notification.created_at).toLocaleString()}
                   </Typography>
                 </Box>
@@ -190,10 +196,12 @@ const Navbar = ({ toggleSidebar }) => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleClose}
-          PaperProps={{
-            sx: {
-              mt: 1.5,
-              minWidth: 180,
+          slotProps={{
+            paper: {
+              sx: {
+                mt: 1.5,
+                minWidth: 180,
+              },
             },
           }}
         >

@@ -53,7 +53,12 @@ const Project = () => {
         <Typography variant="h4" gutterBottom>
           {project.name}
         </Typography>
-        <Typography variant="body1" color="text.secondary" paragraph>
+        <Typography
+          variant="body1"
+          sx={{
+            color: "text.secondary",
+            marginBottom: "16px"
+          }}>
           {project.description}
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>

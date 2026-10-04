@@ -92,7 +92,7 @@ const UserProfile = () => {
         <Paper sx={{ p: 3 }}>
           <form onSubmit={handleSubmit}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   label="Nom d'utilisateur"
@@ -103,7 +103,7 @@ const UserProfile = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   label="Email"
@@ -115,7 +115,7 @@ const UserProfile = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   label="Rôle"
@@ -124,7 +124,7 @@ const UserProfile = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Button
                   type="submit"
                   variant="contained"

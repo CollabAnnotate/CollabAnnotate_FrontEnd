@@ -124,7 +124,11 @@ const ReportGeneration = () => {
       ) : selectedProject ? (
         <>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 6
+              }}>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   Statistiques d'annotation
@@ -142,7 +146,11 @@ const ReportGeneration = () => {
               </Paper>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 6
+              }}>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   Distribution des validations
@@ -169,23 +177,23 @@ const ReportGeneration = () => {
               </Paper>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   Métriques de qualité
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={4}>
+                  <Grid size={4}>
                     <Typography variant="subtitle1">
                       Précision: {stats.qualityMetrics.precision?.toFixed(2) || 'N/A'}
                     </Typography>
                   </Grid>
-                  <Grid item xs={4}>
+                  <Grid size={4}>
                     <Typography variant="subtitle1">
                       Rappel: {stats.qualityMetrics.recall?.toFixed(2) || 'N/A'}
                     </Typography>
                   </Grid>
-                  <Grid item xs={4}>
+                  <Grid size={4}>
                     <Typography variant="subtitle1">
                       F1-Score: {stats.qualityMetrics.f1Score?.toFixed(2) || 'N/A'}
                     </Typography>
