@@ -12,7 +12,7 @@ import {
   Avatar,
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../../store/authSlice';
+import { logoutUser } from '../../store/authSlice';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 
@@ -30,8 +30,8 @@ const Navigation = () => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
     navigate('/login');
     handleClose();
   };

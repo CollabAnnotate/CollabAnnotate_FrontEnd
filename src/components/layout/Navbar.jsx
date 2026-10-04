@@ -22,7 +22,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../store/authSlice';
+import { logoutUser } from '../../store/authSlice';
 import { selectNotifications, selectUnreadCount } from '../../store/notificationsSlice';
 
 const Navbar = ({ toggleSidebar }) => {
@@ -50,8 +50,8 @@ const Navbar = ({ toggleSidebar }) => {
     setNotificationsAnchor(null);
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
     navigate('/login');
   };
 

@@ -12,11 +12,7 @@ import {
   Typography,
   Chip,
 } from '@mui/material';
-import { useSelector } from 'react-redux';
-import axios from 'axios';
-import config from '../../config';
-
-const API_URL = config.API_URL;
+import api from '../../services/api';
 
 const STATUS_LABELS = {
   pending: 'En attente',
@@ -34,7 +30,6 @@ const STATUS_COLORS = {
 
 const ProjectInvitations = () => {
   const [invitations, setInvitations] = useState([]);
-  const token = useSelector((state) => state.auth.token);
 
   useEffect(() => {
     fetchInvitations();
@@ -42,9 +37,7 @@ const ProjectInvitations = () => {
 
   const fetchInvitations = async () => {
     try {
-      const response = await axios.get(`${API_URL}/project-invitations/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get('project-invitations/');
       setInvitations(response.data);
     } catch (error) {
       console.error('Erreur lors de la récupération des invitations:', error);
@@ -53,13 +46,7 @@ const ProjectInvitations = () => {
 
   const handleAcceptInvitation = async (invitationId) => {
     try {
-      await axios.post(
-        `${API_URL}/project-invitations/${invitationId}/accept/`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await api.post(`project-invitations/${invitationId}/accept/`);
       fetchInvitations();
     } catch (error) {
       console.error('Erreur lors de l\'acceptation de l\'invitation:', error);
@@ -68,13 +55,7 @@ const ProjectInvitations = () => {
 
   const handleRejectInvitation = async (invitationId) => {
     try {
-      await axios.post(
-        `${API_URL}/project-invitations/${invitationId}/reject/`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await api.post(`project-invitations/${invitationId}/reject/`);
       fetchInvitations();
     } catch (error) {
       console.error('Erreur lors du rejet de l\'invitation:', error);

@@ -7,14 +7,28 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  // Envoie le cookie HttpOnly du refresh token vers l'API
+  withCredentials: true
 });
+
+// Access token gardé uniquement en mémoire : jamais dans le localStorage, où
+// n'importe quel script (XSS) pourrait le lire. Perdu au rechargement de la page,
+// il est alors restauré via le cookie de refresh (voir restoreSession).
+let accessToken = null;
+
+export const setAccessToken = (token) => {
+  accessToken = token;
+};
+export const getAccessToken = () => accessToken;
+export const clearAccessToken = () => {
+  accessToken = null;
+};
 
 // Gestion du token
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
 }, error => {
@@ -22,23 +36,23 @@ api.interceptors.request.use(config => {
 });
 
 // Routes d'authentification : un 401 sur elles ne doit jamais déclencher de refresh
-const AUTH_URLS = ['token/', 'token/refresh/'];
+const AUTH_URLS = ['token/', 'token/refresh/', 'token/logout/'];
 
 // Refresh en cours, partagé par toutes les requêtes qui reçoivent un 401 en même temps.
 // Le backend fait tourner les refresh tokens et blackliste l'ancien : deux refresh
-// parallèles avec le même token feraient échouer le second.
+// parallèles avec le même cookie feraient échouer le second.
 let refreshPromise = null;
 
-const refreshAccessToken = () => {
+// Le cookie est commun à tous les onglets : un verrou navigateur évite que deux
+// onglets rafraîchissent en même temps avec le même cookie.
+const withRefreshLock = (callback) =>
+  navigator.locks ? navigator.locks.request('token-refresh', callback) : callback();
+
+export const refreshAccessToken = () => {
   if (!refreshPromise) {
-    const refreshToken = localStorage.getItem('refresh_token');
-    refreshPromise = authAPI.refreshToken({ refresh: refreshToken })
+    refreshPromise = withRefreshLock(() => authAPI.refreshToken())
       .then(({ data }) => {
-        localStorage.setItem('token', data.access);
-        // Rotation : l'ancien refresh token est désormais blacklisté
-        if (data.refresh) {
-          localStorage.setItem('refresh_token', data.refresh);
-        }
+        setAccessToken(data.access);
         return data.access;
       })
       .finally(() => {
@@ -49,10 +63,7 @@ const refreshAccessToken = () => {
 };
 
 const clearSessionAndRedirect = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('user');
-  localStorage.removeItem('role');
+  clearAccessToken();
   window.location.href = '/login';
 };
 
@@ -66,8 +77,7 @@ api.interceptors.response.use(
       error.response?.status === 401 &&
       originalRequest &&
       !originalRequest._retry &&
-      !AUTH_URLS.includes(originalRequest.url) &&
-      localStorage.getItem('refresh_token');
+      !AUTH_URLS.includes(originalRequest.url);
 
     if (shouldRefresh) {
       originalRequest._retry = true;
@@ -96,8 +106,12 @@ export const authAPI = {
   register: (userData) => {
     return api.post('register/', userData);
   },
-  refreshToken: (refresh) => {
-    return api.post('token/refresh/', refresh);
+  // Le refresh token voyage dans le cookie HttpOnly : pas de corps à envoyer
+  refreshToken: () => {
+    return api.post('token/refresh/');
+  },
+  logout: () => {
+    return api.post('token/logout/');
   },
   verifyToken: (token) => {
     return api.post('token/verify/', { token });

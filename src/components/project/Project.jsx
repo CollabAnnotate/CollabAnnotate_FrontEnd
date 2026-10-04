@@ -9,8 +9,7 @@ import {
   Typography,
   Button,
 } from '@mui/material';
-import { useSelector } from 'react-redux';
-import axios from 'axios';
+import api from '../../services/api';
 import ProjectCollaborators from '../collaboration/ProjectCollaborators';
 import ProjectInvitations from '../collaboration/ProjectInvitations';
 
@@ -18,7 +17,6 @@ const Project = () => {
   const { projectId } = useParams();
   const [project, setProject] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
-  const token = useSelector((state) => state.auth.token);
 
   useEffect(() => {
     fetchProject();
@@ -26,9 +24,7 @@ const Project = () => {
 
   const fetchProject = async () => {
     try {
-      const response = await axios.get(`/api/projects/${projectId}/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get(`projects/${projectId}/`);
       setProject(response.data);
     } catch (error) {
       console.error('Erreur lors de la récupération du projet:', error);
