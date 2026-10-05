@@ -18,13 +18,9 @@ import {
   TextField,
   MenuItem,
   Alert,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
-import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Add as AddIcon
-} from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 import { usersAPI, getApiErrorMessage } from '../../services/api';
 
 const UserManagement = () => {
@@ -38,21 +34,23 @@ const UserManagement = () => {
     username: '',
     email: '',
     password: '',
-    role: 'annotateur'
+    role: 'annotateur',
   });
 
   const roles = [
     { value: 'annotateur', label: 'Annotateur' },
     { value: 'verificateur', label: 'Vérificateur' },
-    { value: 'admin', label: 'Administrateur' }
+    { value: 'admin', label: 'Administrateur' },
   ];
   const roleLabel = (value) => roles.find((role) => role.value === value)?.label || value;
 
   const openDialog = (user = null) => {
     setEditingUser(user);
-    setFormData(user
-      ? { username: user.username, email: user.email, role: user.role }
-      : { username: '', email: '', password: '', role: 'annotateur' });
+    setFormData(
+      user
+        ? { username: user.username, email: user.email, role: user.role }
+        : { username: '', email: '', password: '', role: 'annotateur' },
+    );
     setDialogError('');
     setDialogOpen(true);
   };
@@ -162,9 +160,7 @@ const UserManagement = () => {
       </TableContainer>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-        <DialogTitle>
-          {editingUser ? 'Modifier' : 'Ajouter'} un utilisateur
-        </DialogTitle>
+        <DialogTitle>{editingUser ? 'Modifier' : 'Ajouter'} un utilisateur</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             {dialogError && (
@@ -177,10 +173,12 @@ const UserManagement = () => {
               label="Nom d'utilisateur"
               margin="normal"
               value={formData.username}
-              onChange={(e) => setFormData({
-                ...formData,
-                username: e.target.value
-              })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  username: e.target.value,
+                })
+              }
             />
             <TextField
               fullWidth
@@ -188,10 +186,12 @@ const UserManagement = () => {
               type="email"
               margin="normal"
               value={formData.email}
-              onChange={(e) => setFormData({
-                ...formData,
-                email: e.target.value
-              })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  email: e.target.value,
+                })
+              }
             />
             {!editingUser && (
               <TextField
@@ -200,10 +200,12 @@ const UserManagement = () => {
                 type="password"
                 margin="normal"
                 value={formData.password}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  password: e.target.value
-                })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    password: e.target.value,
+                  })
+                }
               />
             )}
             <TextField
@@ -212,10 +214,12 @@ const UserManagement = () => {
               label="Rôle"
               margin="normal"
               value={formData.role}
-              onChange={(e) => setFormData({
-                ...formData,
-                role: e.target.value
-              })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  role: e.target.value,
+                })
+              }
             >
               {roles.map((role) => (
                 <MenuItem key={role.value} value={role.value}>
@@ -225,9 +229,7 @@ const UserManagement = () => {
             </TextField>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDialogOpen(false)}>
-              Annuler
-            </Button>
+            <Button onClick={() => setDialogOpen(false)}>Annuler</Button>
             <Button type="submit" variant="contained" disabled={loading}>
               {loading ? <CircularProgress size={24} /> : 'Sauvegarder'}
             </Button>

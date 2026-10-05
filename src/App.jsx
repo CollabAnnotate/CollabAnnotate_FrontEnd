@@ -39,7 +39,14 @@ const App = () => {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '100vh',
+          }}
+        >
           <CircularProgress />
         </Box>
       </ThemeProvider>
@@ -80,15 +87,11 @@ const App = () => {
       <CssBaseline />
       <BrowserRouter>
         <Box sx={{ display: 'flex' }}>
-          
           {/* Navbar */}
           <Navbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-          
+
           {/* Sidebar */}
-          <Sidebar 
-            open={sidebarOpen} 
-            onClose={() => setSidebarOpen(false)} 
-          />
+          <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
           {/* Main Content */}
           <Box
@@ -97,7 +100,7 @@ const App = () => {
               flexGrow: 1,
               p: 3,
               mt: 8,
-              width: '100%'
+              width: '100%',
             }}
           >
             <Routes>
@@ -130,7 +133,7 @@ const App = () => {
                   </PrivateRoute>
                 }
               />
-              
+
               <Route
                 path="/projects/:id"
                 element={

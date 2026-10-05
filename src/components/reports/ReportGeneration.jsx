@@ -10,7 +10,7 @@ import {
   Select,
   MenuItem,
   Alert,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
 import {
   BarChart,
@@ -23,7 +23,7 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
 } from 'recharts';
 import { projectsAPI } from '../../services/api';
 
@@ -36,9 +36,13 @@ const formatPercent = (value) =>
 
 const QualityMetric = ({ label, value, help }) => (
   <Grid size={{ xs: 12, md: 4 }}>
-    <Typography variant="subtitle2" color="text.secondary">{label}</Typography>
+    <Typography variant="subtitle2" color="text.secondary">
+      {label}
+    </Typography>
     <Typography variant="h5">{formatPercent(value)}</Typography>
-    <Typography variant="caption" color="text.secondary">{help}</Typography>
+    <Typography variant="caption" color="text.secondary">
+      {help}
+    </Typography>
   </Grid>
 );
 
@@ -160,7 +164,10 @@ const ReportGeneration = () => {
                         label
                       >
                         {stats.validation_breakdown.map((entry, index) => (
-                          <Cell key={entry.name} fill={VALIDATION_COLORS[index % VALIDATION_COLORS.length]} />
+                          <Cell
+                            key={entry.name}
+                            fill={VALIDATION_COLORS[index % VALIDATION_COLORS.length]}
+                          />
                         ))}
                       </Pie>
                       <Tooltip />

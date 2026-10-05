@@ -37,13 +37,13 @@ import { projectsAPI } from '../../services/api';
 
 const ProjectCard = ({ project }) => {
   return (
-    <Card 
-      sx={{ 
+    <Card
+      sx={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        overflow: 'visible'
+        overflow: 'visible',
       }}
     >
       <CardContent sx={{ flexGrow: 1, pb: 2 }}>
@@ -53,14 +53,15 @@ const ProjectCard = ({ project }) => {
         <Typography
           variant="body2"
           sx={{
-            color: "text.secondary",
+            color: 'text.secondary',
             mb: 2,
             display: '-webkit-box',
             WebkitLineClamp: 3,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
-            height: '4.5em'
-          }}>
+            height: '4.5em',
+          }}
+        >
           {project.description}
         </Typography>
         <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -107,7 +108,7 @@ const ProjectList = () => {
   const [newProject, setNewProject] = useState({
     name: '',
     description: '',
-    visibility: 'private'
+    visibility: 'private',
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -140,7 +141,7 @@ const ProjectList = () => {
     try {
       const projectData = {
         ...newProject,
-        visibility: newProject.visibility || 'private'
+        visibility: newProject.visibility || 'private',
       };
       const response = await projectsAPI.createProject(projectData);
       setOpenDialog(false);
@@ -161,19 +162,22 @@ const ProjectList = () => {
     navigate(`/projects/${projectId}`);
   };
 
-  const filteredProjects = projects.filter((project) => {
-    if (visibilityFilter === 'all') return true;
-    if (visibilityFilter === 'public' && project.visibility === 'public') return true;
-    if (visibilityFilter === 'private' && project.visibility === 'private') return true;
-    return false;
-  }).filter((project) => {
-    return project.name.toLowerCase().includes(searchTerm.toLowerCase());
-  }).sort((a, b) => {
-    if (sortBy === 'name') return a.name.localeCompare(b.name);
-    if (sortBy === 'created_at') return new Date(a.created_at) - new Date(b.created_at);
-    if (sortBy === 'updated_at') return new Date(a.updated_at) - new Date(b.updated_at);
-    return 0;
-  });
+  const filteredProjects = projects
+    .filter((project) => {
+      if (visibilityFilter === 'all') return true;
+      if (visibilityFilter === 'public' && project.visibility === 'public') return true;
+      if (visibilityFilter === 'private' && project.visibility === 'private') return true;
+      return false;
+    })
+    .filter((project) => {
+      return project.name.toLowerCase().includes(searchTerm.toLowerCase());
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === 'created_at') return new Date(a.created_at) - new Date(b.created_at);
+      if (sortBy === 'updated_at') return new Date(a.updated_at) - new Date(b.updated_at);
+      return 0;
+    });
 
   return (
     <Container maxWidth="lg">
@@ -193,14 +197,19 @@ const ProjectList = () => {
 
       {/* Filtres */}
       <Paper sx={{ p: 2, mb: 4 }}>
-        <Grid container spacing={2} sx={{
-          alignItems: "center"
-        }}>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            alignItems: 'center',
+          }}
+        >
           <Grid
             size={{
               xs: 12,
-              sm: 4
-            }}>
+              sm: 4,
+            }}
+          >
             <TextField
               fullWidth
               variant="outlined"
@@ -215,15 +224,16 @@ const ProjectList = () => {
                       <SearchIcon />
                     </InputAdornment>
                   ),
-                }
+                },
               }}
             />
           </Grid>
           <Grid
             size={{
               xs: 12,
-              sm: 4
-            }}>
+              sm: 4,
+            }}
+          >
             <FormControl fullWidth size="small">
               <InputLabel>Visibilité</InputLabel>
               <Select
@@ -240,15 +250,12 @@ const ProjectList = () => {
           <Grid
             size={{
               xs: 12,
-              sm: 4
-            }}>
+              sm: 4,
+            }}
+          >
             <FormControl fullWidth size="small">
               <InputLabel>Trier par</InputLabel>
-              <Select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                label="Trier par"
-              >
+              <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} label="Trier par">
                 <MenuItem value="name">Nom</MenuItem>
                 <MenuItem value="created_at">Date de création</MenuItem>
                 <MenuItem value="updated_at">Dernière modification</MenuItem>
@@ -266,8 +273,9 @@ const ProjectList = () => {
             size={{
               xs: 12,
               sm: 6,
-              md: 4
-            }}>
+              md: 4,
+            }}
+          >
             <ProjectCard project={project} />
           </Grid>
         ))}

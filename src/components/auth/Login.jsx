@@ -126,10 +126,10 @@ const Login = () => {
 
             {error && (
               <Fade in>
-                <Alert 
-                  severity="error" 
-                  sx={{ 
-                    width: '100%', 
+                <Alert
+                  severity="error"
+                  sx={{
+                    width: '100%',
                     mb: 2,
                     '& .MuiAlert-message': {
                       width: '100%',
@@ -200,9 +200,12 @@ const Login = () => {
               </Button>
 
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="body2" sx={{
-                  color: "text.secondary"
-                }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Vous n'avez pas de compte ?{' '}
                   <Link
                     to="/register"

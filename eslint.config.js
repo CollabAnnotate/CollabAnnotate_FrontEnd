@@ -2,10 +2,11 @@ import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import prettier from 'eslint-config-prettier/flat';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'coverage']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -30,7 +31,14 @@ export default defineConfig([
     },
   },
   {
-    files: ['**/*.test.{js,jsx}', 'src/setupTests.js'],
+    files: ['**/*.test.{js,jsx}', 'src/setupTests.js', 'src/test/**'],
     languageOptions: { globals: { ...globals.browser, ...globals.vitest } },
   },
+  {
+    // Utilitaires de test : pas des composants rechargés à chaud
+    files: ['src/test/**'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  // En dernier : désactive les règles de style qui contrediraient Prettier
+  prettier,
 ]);

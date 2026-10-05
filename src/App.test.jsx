@@ -8,14 +8,19 @@ import App from './App';
 test("affiche la page de connexion quand on n'est pas authentifié", async () => {
   // Pas de cookie de refresh : la restauration de session échoue
   api.defaults.adapter = (config) =>
-    Promise.reject(new AxiosError('HTTP 401', 'ERR_BAD_REQUEST', config, null, {
-      status: 401, data: {}, headers: {}, config,
-    }));
+    Promise.reject(
+      new AxiosError('HTTP 401', 'ERR_BAD_REQUEST', config, null, {
+        status: 401,
+        data: {},
+        headers: {},
+        config,
+      }),
+    );
 
   render(
     <Provider store={store}>
       <App />
-    </Provider>
+    </Provider>,
   );
 
   expect((await screen.findAllByText(/Nom d'utilisateur/i))[0]).toBeInTheDocument();

@@ -10,13 +10,13 @@ const theme = createTheme({
     },
     background: {
       default: '#f5f5f5',
-    }
+    },
   },
   typography: {
     h4: {
       fontWeight: 600,
-    }
-  }
+    },
+  },
 });
 
 export default theme;

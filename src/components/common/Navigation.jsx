@@ -53,43 +53,23 @@ const Navigation = () => {
         </Typography>
 
         <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
-          <Button
-            color="inherit"
-            component={RouterLink}
-            to="/dashboard"
-          >
+          <Button color="inherit" component={RouterLink} to="/dashboard">
             Dashboard
           </Button>
-          <Button
-            color="inherit"
-            component={RouterLink}
-            to="/projects"
-          >
+          <Button color="inherit" component={RouterLink} to="/projects">
             Projets
           </Button>
-          <Button
-            color="inherit"
-            component={RouterLink}
-            to="/annotations"
-          >
+          <Button color="inherit" component={RouterLink} to="/annotations">
             Annotations
           </Button>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton
-            size="large"
-            color="inherit"
-            onClick={() => navigate('/notifications')}
-          >
+          <IconButton size="large" color="inherit" onClick={() => navigate('/notifications')}>
             <NotificationsIcon />
           </IconButton>
 
-          <IconButton
-            size="large"
-            onClick={handleMenu}
-            color="inherit"
-          >
+          <IconButton size="large" onClick={handleMenu} color="inherit">
             {user.avatar ? (
               <Avatar src={user.avatar} sx={{ width: 32, height: 32 }} />
             ) : (
@@ -112,7 +92,12 @@ const Navigation = () => {
           }}
         >
           <MenuItem onClick={handleProfile}>Profil</MenuItem>
-          <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
+          <MenuItem
+            onClick={() => {
+              handleClose();
+              navigate('/settings');
+            }}
+          >
             Paramètres
           </MenuItem>
           <MenuItem onClick={handleLogout}>Déconnexion</MenuItem>

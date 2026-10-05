@@ -12,7 +12,7 @@ import {
   Divider,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
 } from '@mui/material';
 
 const Settings = () => {
@@ -23,13 +23,13 @@ const Settings = () => {
     emailNotifications: true,
     darkMode: false,
     autoSave: true,
-    language: 'fr'
+    language: 'fr',
   });
 
   const handleToggle = (setting) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      [setting]: !prev[setting]
+      [setting]: !prev[setting],
     }));
   };
 
@@ -40,7 +40,7 @@ const Settings = () => {
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       setSuccess('Paramètres mis à jour avec succès');
     } catch (err) {
       setError('Erreur lors de la mise à jour des paramètres');
@@ -86,10 +86,7 @@ const Settings = () => {
             <ListItem>
               <FormControlLabel
                 control={
-                  <Switch
-                    checked={settings.darkMode}
-                    onChange={() => handleToggle('darkMode')}
-                  />
+                  <Switch checked={settings.darkMode} onChange={() => handleToggle('darkMode')} />
                 }
                 label="Mode sombre"
               />
@@ -99,10 +96,7 @@ const Settings = () => {
             <ListItem>
               <FormControlLabel
                 control={
-                  <Switch
-                    checked={settings.autoSave}
-                    onChange={() => handleToggle('autoSave')}
-                  />
+                  <Switch checked={settings.autoSave} onChange={() => handleToggle('autoSave')} />
                 }
                 label="Sauvegarde automatique"
               />

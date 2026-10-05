@@ -12,13 +12,10 @@ import {
   Alert,
   Divider,
 } from '@mui/material';
-import {
-  Check as CheckIcon,
-  Close as CloseIcon
-} from '@mui/icons-material';
+import { Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material';
 import { annotationAPI } from '../../services/api';
 
-import ListItemButton from "@mui/material/ListItemButton";
+import ListItemButton from '@mui/material/ListItemButton';
 
 const RevisionInterface = () => {
   const [loading, setLoading] = useState(false);
@@ -58,16 +55,16 @@ const RevisionInterface = () => {
     try {
       await annotationAPI.validateAnnotation(selectedAnnotation.id, {
         status,
-        comment: comment.trim()
+        comment: comment.trim(),
       });
 
       // Mettre à jour la liste des annotations
-      setAnnotations(annotations.filter(a => a.id !== selectedAnnotation.id));
+      setAnnotations(annotations.filter((a) => a.id !== selectedAnnotation.id));
       setSelectedAnnotation(null);
       setComment('');
       setError('');
     } catch (err) {
-      setError(err.response?.data?.error || 'Erreur lors de la validation de l\'annotation');
+      setError(err.response?.data?.error || "Erreur lors de la validation de l'annotation");
     } finally {
       setLoading(false);
     }
@@ -80,29 +77,29 @@ const RevisionInterface = () => {
     // normalisées (0-1) de la boîte tombent ainsi pile sur l'image.
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ position: 'relative', display: 'inline-block' }}>
-        <img
-          src={annotation.image_url}
-          alt={`Annotation ${annotation.label}`}
-          style={{
-            display: 'block',
-            maxWidth: '100%',
-            maxHeight: '400px'
-          }}
-        />
-        {/* Afficher la boîte englobante */}
-        <Box
-          sx={{
-            position: 'absolute',
-            left: `${annotation.x_min * 100}%`,
-            top: `${annotation.y_min * 100}%`,
-            width: `${(annotation.x_max - annotation.x_min) * 100}%`,
-            height: `${(annotation.y_max - annotation.y_min) * 100}%`,
-            border: '2px solid #ff0000',
-            pointerEvents: 'none'
-          }}
-        />
-      </Box>
+        <Box sx={{ position: 'relative', display: 'inline-block' }}>
+          <img
+            src={annotation.image_url}
+            alt={`Annotation ${annotation.label}`}
+            style={{
+              display: 'block',
+              maxWidth: '100%',
+              maxHeight: '400px',
+            }}
+          />
+          {/* Afficher la boîte englobante */}
+          <Box
+            sx={{
+              position: 'absolute',
+              left: `${annotation.x_min * 100}%`,
+              top: `${annotation.y_min * 100}%`,
+              width: `${(annotation.x_max - annotation.x_min) * 100}%`,
+              height: `${(annotation.y_max - annotation.y_min) * 100}%`,
+              border: '2px solid #ff0000',
+              pointerEvents: 'none',
+            }}
+          />
+        </Box>
       </Box>
     );
   };
@@ -113,16 +110,19 @@ const RevisionInterface = () => {
         <Grid
           size={{
             xs: 12,
-            md: 8
-          }}>
+            md: 8,
+          }}
+        >
           <Paper sx={{ p: 2, position: 'relative' }}>
             {loading && (
-              <Box sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)'
-              }}>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                }}
+              >
                 <CircularProgress />
               </Box>
             )}
@@ -139,8 +139,9 @@ const RevisionInterface = () => {
         <Grid
           size={{
             xs: 12,
-            md: 4
-          }}>
+            md: 4,
+          }}
+        >
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Annotations à réviser
@@ -150,7 +151,8 @@ const RevisionInterface = () => {
                 <ListItemButton
                   key={annotation.id}
                   selected={selectedAnnotation?.id === annotation.id}
-                  onClick={() => setSelectedAnnotation(annotation)}>
+                  onClick={() => setSelectedAnnotation(annotation)}
+                >
                   <ListItemText
                     primary={`Label: ${annotation.label}`}
                     secondary={`Confiance: ${(annotation.confidence * 100).toFixed(1)}%`}

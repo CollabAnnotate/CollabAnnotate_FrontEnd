@@ -6,7 +6,9 @@ import authReducer, { restoreSession, loginUser, logoutUser } from './authSlice'
 const respond = (config, status, data = {}) => {
   const response = { data, status, statusText: '', headers: {}, config };
   if (status >= 400) {
-    return Promise.reject(new AxiosError(`HTTP ${status}`, 'ERR_BAD_REQUEST', config, null, response));
+    return Promise.reject(
+      new AxiosError(`HTTP ${status}`, 'ERR_BAD_REQUEST', config, null, response),
+    );
   }
   return Promise.resolve(response);
 };

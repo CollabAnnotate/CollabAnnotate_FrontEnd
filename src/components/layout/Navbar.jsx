@@ -84,9 +84,9 @@ const Navbar = ({ toggleSidebar }) => {
   };
 
   return (
-    <AppBar 
-      position="fixed" 
-      sx={{ 
+    <AppBar
+      position="fixed"
+      sx={{
         zIndex: (theme) => theme.zIndex.drawer + 1,
         background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
         boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
@@ -108,7 +108,7 @@ const Navbar = ({ toggleSidebar }) => {
           variant="h6"
           noWrap
           component="div"
-          sx={{ 
+          sx={{
             flexGrow: 1,
             fontWeight: 'bold',
             background: 'linear-gradient(45deg, #FFFFFF 30%, #E3F2FD 90%)',
@@ -122,8 +122,8 @@ const Navbar = ({ toggleSidebar }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {/* Notifications */}
           <Tooltip title="Notifications">
-            <IconButton 
-              color="inherit" 
+            <IconButton
+              color="inherit"
               onClick={handleNotificationsClick}
               sx={{
                 '&:hover': {
@@ -149,11 +149,11 @@ const Navbar = ({ toggleSidebar }) => {
                   },
                 }}
               >
-                <Avatar 
-                  alt={user?.username || 'User'} 
+                <Avatar
+                  alt={user?.username || 'User'}
                   src={user?.profile_picture || undefined}
-                  sx={{ 
-                    width: 40, 
+                  sx={{
+                    width: 40,
                     height: 40,
                     border: '2px solid white',
                   }}
@@ -183,7 +183,9 @@ const Navbar = ({ toggleSidebar }) => {
         >
           {unreadCount > 0 && (
             <MenuItem onClick={() => dispatch(markAllNotificationsRead())}>
-              <Typography variant="body2" color="primary">Tout marquer comme lu</Typography>
+              <Typography variant="body2" color="primary">
+                Tout marquer comme lu
+              </Typography>
             </MenuItem>
           )}
           {notifications.length === 0 ? (
@@ -203,17 +205,21 @@ const Navbar = ({ toggleSidebar }) => {
                 }}
               >
                 <Box sx={{ width: '100%' }}>
-                  <Typography variant="subtitle2">
-                    {notification.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{
-                    color: "text.secondary"
-                  }}>
+                  <Typography variant="subtitle2">{notification.title}</Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {notification.content}
                   </Typography>
-                  <Typography variant="caption" sx={{
-                    color: "text.secondary"
-                  }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {new Date(notification.created_at).toLocaleString()}
                   </Typography>
                 </Box>
@@ -236,7 +242,7 @@ const Navbar = ({ toggleSidebar }) => {
             },
           }}
         >
-          <MenuItem 
+          <MenuItem
             onClick={() => {
               handleClose();
               navigate('/profile');
@@ -251,7 +257,7 @@ const Navbar = ({ toggleSidebar }) => {
             <ProfileIcon sx={{ mr: 1 }} />
             <Typography>Profil</Typography>
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => {
               handleClose();
               navigate('/settings');
@@ -266,7 +272,7 @@ const Navbar = ({ toggleSidebar }) => {
             <SettingsIcon sx={{ mr: 1 }} />
             <Typography>Paramètres</Typography>
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={handleLogout}
             sx={{
               color: 'error.main',

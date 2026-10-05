@@ -64,7 +64,11 @@ const ProjectCollaborators = ({ projectId }) => {
       fetchCollaborators();
     } catch (error) {
       console.error('Erreur détaillée:', error.response?.data);
-      setError(error.response?.data?.error || error.response?.data?.message || 'Erreur lors de l\'envoi de l\'invitation');
+      setError(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Erreur lors de l'envoi de l'invitation",
+      );
     }
   };
 
@@ -105,9 +109,7 @@ const ProjectCollaborators = ({ projectId }) => {
               <TableRow key={collaborator.id}>
                 <TableCell>{collaborator.user.username}</TableCell>
                 <TableCell>{ROLE_LABELS[collaborator.role]}</TableCell>
-                <TableCell>
-                  {new Date(collaborator.added_at).toLocaleDateString()}
-                </TableCell>
+                <TableCell>{new Date(collaborator.added_at).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <IconButton
                     onClick={() => handleRemoveCollaborator(collaborator.id)}

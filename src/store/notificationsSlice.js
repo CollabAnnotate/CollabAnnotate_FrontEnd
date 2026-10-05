@@ -49,7 +49,9 @@ const notificationsSlice = createSlice({
         if (notification) notification.is_read = true;
       })
       .addCase(markAllNotificationsRead.pending, (state) => {
-        state.items.forEach((n) => { n.is_read = true; });
+        state.items.forEach((n) => {
+          n.is_read = true;
+        });
       });
   },
 });
