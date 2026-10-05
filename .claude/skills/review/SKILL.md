@@ -5,9 +5,15 @@ description: Étape 4 du workflow TDD frontend — fait relire la branche par /c
 
 # Review de la branche
 
-## 1. Revue automatique
+## 1. Revues automatiques (en parallèle)
 
-Lancer le skill intégré `/code-review` sur le diff de la branche par rapport à `main` (`git diff main...HEAD`).
+Dans un même message, lancer :
+
+- l'agent **`ui-reviewer`** (règles React, MUI 9, accessibilité, états, appels API) ;
+- l'agent **`test-reviewer`** (tests ↔ plan validé ↔ critères de l'issue) ;
+- le skill intégré **`/code-review`** sur le diff de la branche (`git diff main...HEAD`).
+
+Ces relecteurs ont un contexte neuf : ils ne partagent pas les angles morts de l'auteur. Ils ne modifient rien. Fusionner leurs rapports en dédoublonnant.
 
 ## 2. Checklist CollabAnnotate (vérifier chaque point sur le diff)
 

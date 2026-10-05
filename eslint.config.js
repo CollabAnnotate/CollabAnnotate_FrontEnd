@@ -39,6 +39,11 @@ export default defineConfig([
     files: ['src/test/**'],
     rules: { 'react-refresh/only-export-components': 'off' },
   },
+  {
+    // Hooks Claude Code : scripts Node exécutés hors du navigateur
+    files: ['.claude/hooks/**/*.mjs'],
+    languageOptions: { globals: { ...globals.node, ...globals.vitest } },
+  },
   // En dernier : désactive les règles de style qui contrediraient Prettier
   prettier,
 ]);

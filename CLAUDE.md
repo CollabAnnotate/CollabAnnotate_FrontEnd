@@ -12,6 +12,16 @@ Chaque changement part d'une **GitHub Issue** et suit les skills du dépôt, dan
 4. `/review` — `/code-review` + checklist du dépôt (✋ validation)
 5. `/merge` — PR, CI verte, squash-merge (✋ validation)
 
+### Hooks et agents (`.claude/hooks/`, `.claude/agents/`)
+
+- **Hooks** (déclarés dans `.claude/settings.json`, testés par `.claude/hooks/hooks.test.mjs`) :
+  - `guard-bash.mjs` bloque le push sur `main`, `--force`, `--no-verify`, `git add` de `.env` / `dist/` / `coverage/` et un merge autrement qu'en squash ;
+  - `guard-files.mjs` protège les `.env` ;
+  - `format.mjs` passe Prettier sur chaque fichier modifié ;
+  - `session-context.mjs` rappelle la branche, l'issue et la PR en début de session.
+- **Agents de review** (lecture seule, lancés par `/review`) : `ui-reviewer` et `test-reviewer`.
+- Ils ne s'appliquent que si Claude Code est lancé **depuis ce dossier**.
+
 Branches : `feat/<n>-slug`, `fix/<n>-slug`, `chore/<n>-slug` depuis `main`. Commits en Conventional Commits, messages en français. Ne jamais pousser sur `main` directement ni merger sans accord explicite. Un changement qui dépend d'une évolution de l'API attend que la PR backend soit mergée.
 
 ## Commandes (Windows / PowerShell)
