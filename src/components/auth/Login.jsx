@@ -200,7 +200,9 @@ const Login = () => {
               </Button>
 
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" sx={{
+                  color: "text.secondary"
+                }}>
                   Vous n'avez pas de compte ?{' '}
                   <Link
                     to="/register"

@@ -25,12 +25,13 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon
 } from '@mui/icons-material';
-import { usersAPI } from '../../services/api';
+import { usersAPI, getApiErrorMessage } from '../../services/api';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [dialogError, setDialogError] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({
@@ -45,6 +46,16 @@ const UserManagement = () => {
     { value: 'verificateur', label: 'Vérificateur' },
     { value: 'admin', label: 'Administrateur' }
   ];
+  const roleLabel = (value) => roles.find((role) => role.value === value)?.label || value;
+
+  const openDialog = (user = null) => {
+    setEditingUser(user);
+    setFormData(user
+      ? { username: user.username, email: user.email, role: user.role }
+      : { username: '', email: '', password: '', role: 'annotateur' });
+    setDialogError('');
+    setDialogOpen(true);
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -56,7 +67,7 @@ const UserManagement = () => {
       const response = await usersAPI.getUsers();
       setUsers(response.data);
     } catch (err) {
-      setError('Erreur lors du chargement des utilisateurs');
+      setError(getApiErrorMessage(err, 'Erreur lors du chargement des utilisateurs'));
     } finally {
       setLoading(false);
     }
@@ -74,7 +85,7 @@ const UserManagement = () => {
       setDialogOpen(false);
       fetchUsers();
     } catch (err) {
-      setError('Erreur lors de la sauvegarde');
+      setDialogError(getApiErrorMessage(err, 'Erreur lors de la sauvegarde'));
     } finally {
       setLoading(false);
     }
@@ -84,9 +95,10 @@ const UserManagement = () => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
       try {
         await usersAPI.deleteUser(userId);
+        setError('');
         fetchUsers();
       } catch (err) {
-        setError('Erreur lors de la suppression');
+        setError(getApiErrorMessage(err, 'Erreur lors de la suppression'));
       }
     }
   };
@@ -106,16 +118,7 @@ const UserManagement = () => {
       <Button
         variant="contained"
         startIcon={<AddIcon />}
-        onClick={() => {
-          setEditingUser(null);
-          setFormData({
-            username: '',
-            email: '',
-            password: '',
-            role: 'annotateur'
-          });
-          setDialogOpen(true);
-        }}
+        onClick={() => openDialog()}
         sx={{ mb: 2 }}
       >
         Ajouter un utilisateur
@@ -136,23 +139,17 @@ const UserManagement = () => {
               <TableRow key={user.id}>
                 <TableCell>{user.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>{user.role}</TableCell>
+                <TableCell>{roleLabel(user.role)}</TableCell>
                 <TableCell>
                   <IconButton
-                    onClick={() => {
-                      setEditingUser(user);
-                      setFormData({
-                        username: user.username,
-                        email: user.email,
-                        role: user.role
-                      });
-                      setDialogOpen(true);
-                    }}
+                    aria-label={`Modifier ${user.username}`}
+                    onClick={() => openDialog(user)}
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton
                     color="error"
+                    aria-label={`Supprimer ${user.username}`}
                     onClick={() => handleDelete(user.id)}
                   >
                     <DeleteIcon />
@@ -170,6 +167,11 @@ const UserManagement = () => {
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
+            {dialogError && (
+              <Alert severity="error" sx={{ mb: 1 }}>
+                {dialogError}
+              </Alert>
+            )}
             <TextField
               fullWidth
               label="Nom d'utilisateur"

@@ -464,7 +464,7 @@ const ProjectDetail = () => {
     setEditedAnnotation(null); // Réinitialiser l'annotation en cours d'édition
     
     // Créer l'URL de prévisualisation
-    const imageUrl = `${process.env.REACT_APP_API_URL}${image.file}`;
+    const imageUrl = image.image_url;
     setImagePreview(imageUrl);
     
     try {
@@ -555,9 +555,11 @@ const ProjectDetail = () => {
       onClose={() => setShowHistory(false)} 
       maxWidth="md" 
       fullWidth
-      PaperProps={{
-        sx: {
-          maxHeight: '80vh'
+      slotProps={{
+        paper: {
+          sx: {
+            maxHeight: '80vh'
+          }
         }
       }}
     >
@@ -596,11 +598,10 @@ const ProjectDetail = () => {
                     <Typography variant="subtitle1" component="span" sx={{ fontWeight: 'bold' }}>
                       {history.modified_by_username}
                     </Typography>
-                    <Typography variant="body2" component="span" sx={{ ml: 1, color: 'text.secondary' }}>
-                      ({history.modified_by_email})
-                    </Typography>
                   </Box>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" sx={{
+                    color: "text.secondary"
+                  }}>
                     {new Date(history.modified_at).toLocaleString()}
                   </Typography>
                 </Box>
@@ -743,7 +744,7 @@ const ProjectDetail = () => {
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
         {/* Onglets de navigation */}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Tabs value={currentTab} onChange={handleTabChange} sx={{ mb: 3 }}>
             <Tab label="Informations" />
             <Tab label="Images & Annotations" />
@@ -754,7 +755,7 @@ const ProjectDetail = () => {
         </Grid>
 
         {/* Contenu des onglets */}
-        <Grid item xs={12}>
+        <Grid size={12}>
           {/* Onglet Informations */}
           {currentTab === 0 && (
             <Paper sx={{ p: 3 }}>
@@ -840,7 +841,13 @@ const ProjectDetail = () => {
               {!selectedImage ? (
                 <Grid container spacing={2}>
                   {images.map((image) => (
-                    <Grid item xs={12} sm={6} md={4} key={image.id}>
+                    <Grid
+                      key={image.id}
+                      size={{
+                        xs: 12,
+                        sm: 6,
+                        md: 4
+                      }}>
                       <Paper
                         sx={{
                           p: 2,
@@ -851,7 +858,7 @@ const ProjectDetail = () => {
                       >
                         <Box
                           component="img"
-                          src={image.image_url || `${process.env.REACT_APP_API_URL}${image.file}`}
+                          src={image.image_url}
                           alt={`Image ${image.id}`}
                           sx={{
                             width: '100%',
@@ -888,7 +895,11 @@ const ProjectDetail = () => {
                   </Box>
 
                   <Grid container spacing={2}>
-                    <Grid item xs={12} md={8}>
+                    <Grid
+                      size={{
+                        xs: 12,
+                        md: 8
+                      }}>
                       <Paper sx={{ p: 2, height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Box
                           ref={containerRef}
@@ -906,7 +917,7 @@ const ProjectDetail = () => {
                         >
                           <img 
                             ref={imageRef} 
-                            src={selectedImage?.image_url || `${process.env.REACT_APP_API_URL}${selectedImage?.file}`}
+                            src={selectedImage?.image_url}
                             alt="Preview" 
                             style={{
                               maxWidth: '100%',
@@ -1044,7 +1055,11 @@ const ProjectDetail = () => {
                       </Paper>
                     </Grid>
 
-                    <Grid item xs={12} md={4}>
+                    <Grid
+                      size={{
+                        xs: 12,
+                        md: 4
+                      }}>
                       <Paper sx={{ p: 2 }}>
                         <Typography variant="h6" gutterBottom>
                           Annotations
@@ -1073,7 +1088,9 @@ const ProjectDetail = () => {
                               value={Math.round(editedAnnotation.confidence * 100)}
                               onChange={(e) => handleAnnotationUpdate('confidence', Number(e.target.value) / 100)}
                               margin="normal"
-                              InputProps={{ inputProps: { min: 0, max: 100 } }}
+                              slotProps={{
+                                htmlInput: { min: 0, max: 100 }
+                              }}
                             />
 
                             <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
@@ -1081,7 +1098,7 @@ const ProjectDetail = () => {
                             </Typography>
                             
                             <Grid container spacing={2}>
-                              <Grid item xs={6}>
+                              <Grid size={6}>
                                 <TextField
                                   fullWidth
                                   label="X Min"
@@ -1093,10 +1110,12 @@ const ProjectDetail = () => {
                                       handleAnnotationUpdate('x_min', value);
                                     }
                                   }}
-                                  InputProps={{ inputProps: { min: 0, max: 99 } }}
+                                  slotProps={{
+                                    htmlInput: { min: 0, max: 99 }
+                                  }}
                                 />
                               </Grid>
-                              <Grid item xs={6}>
+                              <Grid size={6}>
                                 <TextField
                                   fullWidth
                                   label="X Max"
@@ -1108,10 +1127,12 @@ const ProjectDetail = () => {
                                       handleAnnotationUpdate('x_max', value);
                                     }
                                   }}
-                                  InputProps={{ inputProps: { min: 1, max: 100 } }}
+                                  slotProps={{
+                                    htmlInput: { min: 1, max: 100 }
+                                  }}
                                 />
                               </Grid>
-                              <Grid item xs={6}>
+                              <Grid size={6}>
                                 <TextField
                                   fullWidth
                                   label="Y Min"
@@ -1123,10 +1144,12 @@ const ProjectDetail = () => {
                                       handleAnnotationUpdate('y_min', value);
                                     }
                                   }}
-                                  InputProps={{ inputProps: { min: 0, max: 99 } }}
+                                  slotProps={{
+                                    htmlInput: { min: 0, max: 99 }
+                                  }}
                                 />
                               </Grid>
-                              <Grid item xs={6}>
+                              <Grid size={6}>
                                 <TextField
                                   fullWidth
                                   label="Y Max"
@@ -1138,7 +1161,9 @@ const ProjectDetail = () => {
                                       handleAnnotationUpdate('y_max', value);
                                     }
                                   }}
-                                  InputProps={{ inputProps: { min: 1, max: 100 } }}
+                                  slotProps={{
+                                    htmlInput: { min: 1, max: 100 }
+                                  }}
                                 />
                               </Grid>
                             </Grid>
@@ -1230,7 +1255,7 @@ const ProjectDetail = () => {
           </Button>
         </Box>
       )}
-      
+
       <HistoryDialog />
       <DeleteConfirmationDialog />
     </Box>

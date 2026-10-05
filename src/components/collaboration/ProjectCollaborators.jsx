@@ -20,9 +20,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import { useSelector } from 'react-redux';
-import axios from 'axios';
-import config from '../../config';
+import api from '../../services/api';
 
 const ROLE_LABELS = {
   viewer: 'Lecteur',
@@ -31,15 +29,12 @@ const ROLE_LABELS = {
   admin: 'Administrateur',
 };
 
-const API_URL = 'http://localhost:8000/api';
-
 const ProjectCollaborators = ({ projectId }) => {
   const [collaborators, setCollaborators] = useState([]);
   const [openInviteDialog, setOpenInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('viewer');
   const [error, setError] = useState('');
-  const token = useSelector((state) => state.auth.token);
 
   useEffect(() => {
     fetchCollaborators();
@@ -47,9 +42,7 @@ const ProjectCollaborators = ({ projectId }) => {
 
   const fetchCollaborators = async () => {
     try {
-      const response = await axios.get(`${API_URL}/project-collaborators/?project=${projectId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get(`project-collaborators/?project=${projectId}`);
       setCollaborators(response.data);
     } catch (error) {
       console.error('Erreur lors de la récupération des collaborateurs:', error);
@@ -58,17 +51,11 @@ const ProjectCollaborators = ({ projectId }) => {
 
   const handleInvite = async () => {
     try {
-      await axios.post(
-        `${API_URL}/project-invitations/`,
-        {
-          project: projectId,
-          invited_email: inviteEmail,
-          role: inviteRole,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await api.post('project-invitations/', {
+        project: projectId,
+        invited_email: inviteEmail,
+        role: inviteRole,
+      });
       setOpenInviteDialog(false);
       setInviteEmail('');
       setInviteRole('viewer');
@@ -83,9 +70,7 @@ const ProjectCollaborators = ({ projectId }) => {
 
   const handleRemoveCollaborator = async (collaboratorId) => {
     try {
-      await axios.delete(`${API_URL}/project-collaborators/${collaboratorId}/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`project-collaborators/${collaboratorId}/`);
       fetchCollaborators();
     } catch (error) {
       console.error('Erreur lors de la suppression du collaborateur:', error);

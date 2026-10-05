@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { PhotoCamera } from '@mui/icons-material';
-import { usersAPI } from '../../services/api';
+import { usersAPI, getApiErrorMessage } from '../../services/api';
 import { updateUser, selectCurrentUser, selectAuthStatus, selectAuthError } from '../../store/authSlice';
 
 const UserProfile = () => {
@@ -35,6 +35,7 @@ const UserProfile = () => {
     profile_picture: null
   });
   const [success, setSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [passwordData, setPasswordData] = useState({
     current_password: '',
     new_password: '',
@@ -86,7 +87,10 @@ const UserProfile = () => {
 
   const handlePasswordSubmit = async (event) => {
     event.preventDefault();
+    setSuccess('');
+    setPasswordError('');
     if (passwordData.new_password !== passwordData.confirm_password) {
+      setPasswordError('La confirmation ne correspond pas au nouveau mot de passe');
       return;
     }
 
@@ -102,7 +106,7 @@ const UserProfile = () => {
         confirm_password: ''
       });
     } catch (err) {
-      console.error('Erreur lors du changement de mot de passe:', err);
+      setPasswordError(getApiErrorMessage(err, 'Erreur lors du changement de mot de passe'));
     }
   };
 
@@ -140,7 +144,12 @@ const UserProfile = () => {
         
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid item xs={12} display="flex" justifyContent="center">
+            <Grid
+              size={12}
+              sx={{
+                display: "flex",
+                justifyContent: "center"
+              }}>
               <Box sx={{ position: 'relative', textAlign: 'center' }}>
                 <Avatar
                   src={formData.profile_picture ? URL.createObjectURL(formData.profile_picture) : currentUser.profile_picture}
@@ -175,7 +184,11 @@ const UserProfile = () => {
               </Box>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6
+              }}>
               <TextField
                 fullWidth
                 label="Prénom"
@@ -187,7 +200,11 @@ const UserProfile = () => {
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6
+              }}>
               <TextField
                 fullWidth
                 label="Nom"
@@ -199,7 +216,7 @@ const UserProfile = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Nom d'utilisateur"
@@ -212,7 +229,7 @@ const UserProfile = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Email"
@@ -226,7 +243,7 @@ const UserProfile = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <FormControl fullWidth variant="outlined">
                 <InputLabel>Rôle</InputLabel>
                 <Select
@@ -242,7 +259,7 @@ const UserProfile = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Bio"
@@ -257,7 +274,7 @@ const UserProfile = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Button 
                 type="submit" 
                 variant="contained" 
@@ -276,10 +293,16 @@ const UserProfile = () => {
           <Typography variant="h5" gutterBottom color="primary">
             Changer le mot de passe
           </Typography>
-          
+
+          {passwordError && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setPasswordError('')}>
+              {passwordError}
+            </Alert>
+          )}
+
           <form onSubmit={handlePasswordSubmit}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   type="password"
@@ -293,7 +316,7 @@ const UserProfile = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   type="password"
@@ -307,7 +330,7 @@ const UserProfile = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   type="password"
@@ -321,7 +344,7 @@ const UserProfile = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Button 
                   type="submit" 
                   variant="contained" 

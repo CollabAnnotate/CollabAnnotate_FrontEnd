@@ -37,7 +37,7 @@ const Dashboard = () => {
       
       // Calculer les statistiques
       const totalAnnotations = projectsResponse.data.reduce(
-        (acc, project) => acc + (project.annotations_count || 0), 
+        (acc, project) => acc + (project.total_annotations || 0), 
         0
       );
       
@@ -45,7 +45,7 @@ const Dashboard = () => {
         totalProjects: projectsResponse.data.length,
         totalAnnotations,
         pendingValidations: projectsResponse.data.reduce(
-          (acc, project) => acc + (project.pending_validations || 0),
+          (acc, project) => acc + (project.pending_annotations || 0),
           0
         )
       });
@@ -93,19 +93,31 @@ const Dashboard = () => {
 
       {/* Statistiques générales */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 4
+          }}>
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6">Projets</Typography>
             <Typography variant="h3">{stats.totalProjects}</Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 4
+          }}>
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6">Annotations</Typography>
             <Typography variant="h3">{stats.totalAnnotations}</Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 4
+          }}>
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6">En attente</Typography>
             <Typography variant="h3">{stats.pendingValidations}</Typography>
@@ -134,7 +146,12 @@ const Dashboard = () => {
       ) : (
         <Grid container spacing={3}>
           {projects.map((project) => (
-            <Grid item xs={12} md={6} key={project.id}>
+            <Grid
+              key={project.id}
+              size={{
+                xs: 12,
+                md: 6
+              }}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">{project.name}</Typography>
@@ -145,10 +162,10 @@ const Dashboard = () => {
                     Créé le: {new Date(project.created_at).toLocaleDateString()}
                   </Typography>
                   <Typography variant="body2">
-                    Annotations: {project.annotations_count || 0}
+                    Annotations: {project.total_annotations || 0}
                   </Typography>
                   <Typography variant="body2">
-                    En attente: {project.pending_validations || 0}
+                    En attente: {project.pending_annotations || 0}
                   </Typography>
                 </CardContent>
                 <CardActions>
@@ -161,7 +178,7 @@ const Dashboard = () => {
                   <Button 
                     size="small"
                     color="primary"
-                    onClick={() => navigate(`/annotation/${project.id}`)}
+                    onClick={() => navigate(`/projects/${project.id}/annotate`)}
                   >
                     Annoter
                   </Button>

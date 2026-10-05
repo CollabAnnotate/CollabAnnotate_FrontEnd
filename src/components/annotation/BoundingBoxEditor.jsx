@@ -49,9 +49,9 @@ const BoundingBoxEditor = ({ annotation, onUpdate }) => {
             <Typography variant="h6" gutterBottom>
                 Modifier la boîte englobante
             </Typography>
-            
+
             <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid size={12}>
                     <Typography>X Min: {coordinates.x_min.toFixed(3)}</Typography>
                     <Slider
                         value={coordinates.x_min}
@@ -62,7 +62,7 @@ const BoundingBoxEditor = ({ annotation, onUpdate }) => {
                     />
                 </Grid>
                 
-                <Grid item xs={12}>
+                <Grid size={12}>
                     <Typography>X Max: {coordinates.x_max.toFixed(3)}</Typography>
                     <Slider
                         value={coordinates.x_max}
@@ -73,7 +73,7 @@ const BoundingBoxEditor = ({ annotation, onUpdate }) => {
                     />
                 </Grid>
                 
-                <Grid item xs={12}>
+                <Grid size={12}>
                     <Typography>Y Min: {coordinates.y_min.toFixed(3)}</Typography>
                     <Slider
                         value={coordinates.y_min}
@@ -84,7 +84,7 @@ const BoundingBoxEditor = ({ annotation, onUpdate }) => {
                     />
                 </Grid>
                 
-                <Grid item xs={12}>
+                <Grid size={12}>
                     <Typography>Y Max: {coordinates.y_max.toFixed(3)}</Typography>
                     <Slider
                         value={coordinates.y_max}

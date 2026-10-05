@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AppBar,
   Box,
@@ -22,8 +22,18 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../store/authSlice';
-import { selectNotifications, selectUnreadCount } from '../../store/notificationsSlice';
+import { logoutUser } from '../../store/authSlice';
+import {
+  clearNotifications,
+  fetchNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  selectNotifications,
+  selectUnreadCount,
+} from '../../store/notificationsSlice';
+
+// Fréquence de rafraîchissement des notifications
+const NOTIFICATIONS_POLL_MS = 60_000;
 
 const Navbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
@@ -33,6 +43,23 @@ const Navbar = ({ toggleSidebar }) => {
   const user = useSelector((state) => state.auth.user);
   const notifications = useSelector(selectNotifications) || [];
   const unreadCount = useSelector(selectUnreadCount) || 0;
+
+  // Charge les notifications puis les rafraîchit périodiquement
+  useEffect(() => {
+    dispatch(fetchNotifications());
+    const timer = setInterval(() => dispatch(fetchNotifications()), NOTIFICATIONS_POLL_MS);
+    return () => clearInterval(timer);
+  }, [dispatch]);
+
+  const handleNotificationClick = (notification) => {
+    setNotificationsAnchor(null);
+    if (!notification.is_read) {
+      dispatch(markNotificationRead(notification.id));
+    }
+    if (notification.related_project) {
+      navigate(`/projects/${notification.related_project}`);
+    }
+  };
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -50,8 +77,9 @@ const Navbar = ({ toggleSidebar }) => {
     setNotificationsAnchor(null);
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
+    dispatch(clearNotifications());
     navigate('/login');
   };
 
@@ -62,6 +90,7 @@ const Navbar = ({ toggleSidebar }) => {
         zIndex: (theme) => theme.zIndex.drawer + 1,
         background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
         boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+        displayPrint: 'none',
       }}
     >
       <Toolbar>
@@ -122,7 +151,7 @@ const Navbar = ({ toggleSidebar }) => {
               >
                 <Avatar 
                   alt={user?.username || 'User'} 
-                  src={user?.avatar}
+                  src={user?.profile_picture || undefined}
                   sx={{ 
                     width: 40, 
                     height: 40,
@@ -141,29 +170,33 @@ const Navbar = ({ toggleSidebar }) => {
           anchorEl={notificationsAnchor}
           open={Boolean(notificationsAnchor)}
           onClose={handleNotificationsClose}
-          PaperProps={{
-            sx: {
-              mt: 1.5,
-              width: 320,
-              maxHeight: 400,
-              overflow: 'auto',
+          slotProps={{
+            paper: {
+              sx: {
+                mt: 1.5,
+                width: 320,
+                maxHeight: 400,
+                overflow: 'auto',
+              },
             },
           }}
         >
+          {unreadCount > 0 && (
+            <MenuItem onClick={() => dispatch(markAllNotificationsRead())}>
+              <Typography variant="body2" color="primary">Tout marquer comme lu</Typography>
+            </MenuItem>
+          )}
           {notifications.length === 0 ? (
             <MenuItem disabled>
               <Typography variant="body2">Aucune notification</Typography>
             </MenuItem>
           ) : (
             notifications.map((notification) => (
-              <MenuItem 
+              <MenuItem
                 key={notification.id}
-                onClick={() => {
-                  handleNotificationsClose();
-                  // Marquer comme lu et rediriger si nécessaire
-                }}
+                onClick={() => handleNotificationClick(notification)}
                 sx={{
-                  bgcolor: notification.read ? 'transparent' : 'action.hover',
+                  bgcolor: notification.is_read ? 'transparent' : 'action.hover',
                   '&:hover': {
                     bgcolor: 'action.selected',
                   },
@@ -173,10 +206,14 @@ const Navbar = ({ toggleSidebar }) => {
                   <Typography variant="subtitle2">
                     {notification.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {notification.message}
+                  <Typography variant="body2" sx={{
+                    color: "text.secondary"
+                  }}>
+                    {notification.content}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" sx={{
+                    color: "text.secondary"
+                  }}>
                     {new Date(notification.created_at).toLocaleString()}
                   </Typography>
                 </Box>
@@ -190,10 +227,12 @@ const Navbar = ({ toggleSidebar }) => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleClose}
-          PaperProps={{
-            sx: {
-              mt: 1.5,
-              minWidth: 180,
+          slotProps={{
+            paper: {
+              sx: {
+                mt: 1.5,
+                minWidth: 180,
+              },
             },
           }}
         >

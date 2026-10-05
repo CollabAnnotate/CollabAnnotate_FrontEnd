@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Box, CssBaseline, ThemeProvider } from '@mui/material';
-import { useSelector } from 'react-redux';
+import { Box, CircularProgress, CssBaseline, ThemeProvider } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
 import theme from './theme';
+import { restoreSession } from './store/authSlice';
 
 // Layout Components
 import Navbar from './components/layout/Navbar';
@@ -21,13 +22,29 @@ import ReportGeneration from './components/reports/ReportGeneration';
 import UserManagement from './components/users/UserManagement';
 import ProjectList from './components/projects/ProjectList';
 import ProjectDetail from './components/projects/ProjectDetail';
-import Project from './components/project/Project';
 import UserProfile from './components/profile/UserProfile';
 import Settings from './components/settings/Settings';
 
 const App = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const { isAuthenticated, initialized, user } = useSelector((state) => state.auth);
+
+  // Au chargement, récupère un access token grâce au cookie HttpOnly de refresh
+  useEffect(() => {
+    dispatch(restoreSession());
+  }, [dispatch]);
+
+  if (!initialized) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+          <CircularProgress />
+        </Box>
+      </ThemeProvider>
+    );
+  }
 
   // Composant pour les routes protégées
   const PrivateRoute = ({ children, roles }) => {
@@ -128,15 +145,6 @@ const App = () => {
                 element={
                   <PrivateRoute roles={['annotateur', 'admin']}>
                     <ImageAnnotator />
-                  </PrivateRoute>
-                }
-              />
-
-              <Route
-                path="/projects/:projectId"
-                element={
-                  <PrivateRoute>
-                    <Project />
                   </PrivateRoute>
                 }
               />

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux'; 
 import {
   Box,
   Paper,
@@ -9,31 +8,22 @@ import {
   Typography,
   Alert,
   CircularProgress,
-  MenuItem,
   Container
 } from '@mui/material';
 import { authAPI } from '../../services/api';
-import api from '../../services/api';
-import { setCredentials } from '../../store/authSlice';
 
-const Register = () => { 
+const Register = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch(); // Obtenir la fonction dispatch
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    role: 'annotateur'
+    confirmPassword: ''
   });
-
-  const roles = [
-    { value: 'annotateur', label: 'Annotateur' },
-    { value: 'verificateur', label: 'Vérificateur' },
-    { value: 'admin', label: 'Administrateur' }
-  ];
+  // Pas de choix du rôle : tout inscrit est annotateur, un administrateur
+  // attribue les autres rôles depuis l'interface /admin/ de Django.
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,8 +49,7 @@ const Register = () => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        password2: formData.confirmPassword,
-        role: formData.role
+        password2: formData.confirmPassword
       });
 
       // Rediriger vers la page de connexion avec un message de succès
@@ -136,24 +125,6 @@ const Register = () => {
               disabled={loading}
               autoComplete="email"
             />
-
-            <TextField
-              fullWidth
-              select
-              label="Rôle"
-              variant="outlined"
-              margin="normal"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              disabled={loading}
-            >
-              {roles.map((role) => (
-                <MenuItem key={role.value} value={role.value}>
-                  {role.label}
-                </MenuItem>
-              ))}
-            </TextField>
 
             <TextField
               fullWidth

@@ -1,5 +1,33 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { authAPI } from '../services/api';
+import {
+  authAPI,
+  usersAPI,
+  setAccessToken,
+  clearAccessToken,
+  refreshAccessToken,
+  getApiErrorMessage,
+} from '../services/api';
+
+// Clés de l'ancien stockage des tokens dans le localStorage, à purger
+const LEGACY_STORAGE_KEYS = ['token', 'refresh_token', 'user', 'role'];
+
+// Thunk lancé au démarrage : l'access token vit en mémoire et disparaît au
+// rechargement, on le récupère grâce au cookie HttpOnly du refresh token.
+export const restoreSession = createAsyncThunk(
+  'auth/restoreSession',
+  async (_, { rejectWithValue }) => {
+    LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    try {
+      await refreshAccessToken();
+      const { data: user } = await usersAPI.getCurrentUser();
+      return { user, role: user.role || 'annotateur' };
+    } catch {
+      // Pas de cookie valide : l'utilisateur doit se connecter
+      clearAccessToken();
+      return rejectWithValue(null);
+    }
+  }
+);
 
 // Thunk pour la connexion
 export const loginUser = createAsyncThunk(
@@ -7,68 +35,79 @@ export const loginUser = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await authAPI.login(credentials);
-      const { user, access, refresh } = response.data;
-      
-      // Stocker les tokens
-      localStorage.setItem('token', access);
-      localStorage.setItem('refresh_token', refresh);
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('role', user.role || 'annotateur');
-      
-      return { user, token: access, role: user.role || 'annotateur' };
+      const { user, access } = response.data;
+
+      // Access token en mémoire ; le refresh token est dans un cookie HttpOnly
+      setAccessToken(access);
+
+      return { user, role: user.role || 'annotateur' };
     } catch (err) {
       return rejectWithValue(err.response?.data?.detail || 'Erreur de connexion');
     }
   }
 );
 
+// Thunk pour la déconnexion : le serveur révoque le refresh token et vide le cookie
+export const logoutUser = createAsyncThunk('auth/logout', async () => {
+  try {
+    await authAPI.logout();
+  } catch {
+    // Même si l'appel échoue, on déconnecte localement
+  } finally {
+    clearAccessToken();
+  }
+});
+
 // Thunk pour la mise à jour du profil
 export const updateUser = createAsyncThunk(
   'auth/updateUser',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await authAPI.updateProfile(userData);
+      const response = await usersAPI.updateProfile(userData);
       const updatedUser = response.data;
-      
-      // Mettre à jour les données utilisateur dans le localStorage
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      localStorage.setItem('role', updatedUser.role || 'annotateur');
-      
+
       return { user: updatedUser, role: updatedUser.role || 'annotateur' };
     } catch (err) {
-      return rejectWithValue(err.response?.data?.detail || 'Erreur lors de la mise à jour du profil');
+      return rejectWithValue(getApiErrorMessage(err, 'Erreur lors de la mise à jour du profil'));
     }
   }
 );
 
 const initialState = {
-  user: JSON.parse(localStorage.getItem('user')) || null,
-  token: localStorage.getItem('token') || null,
-  role: localStorage.getItem('role') || 'annotateur',
-  isAuthenticated: !!localStorage.getItem('token'),
+  user: null,
+  role: null,
+  isAuthenticated: false,
+  // false tant que restoreSession n'a pas déterminé si l'utilisateur est connecté
+  initialized: false,
   status: 'idle',
   error: null
+};
+
+const resetSession = (state) => {
+  state.user = null;
+  state.role = null;
+  state.isAuthenticated = false;
+  state.status = 'idle';
+  state.error = null;
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {
-    logout: (state) => {
-      state.user = null;
-      state.token = null;
-      state.role = null;
-      state.isAuthenticated = false;
-      state.status = 'idle';
-      state.error = null;
-      localStorage.removeItem('token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('role');
-    }
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
+      // Restauration de session
+      .addCase(restoreSession.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.role = action.payload.role;
+        state.isAuthenticated = true;
+        state.initialized = true;
+      })
+      .addCase(restoreSession.rejected, (state) => {
+        resetSession(state);
+        state.initialized = true;
+      })
       // Login cases
       .addCase(loginUser.pending, (state) => {
         state.status = 'loading';
@@ -77,7 +116,6 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.user = action.payload.user;
-        state.token = action.payload.token;
         state.role = action.payload.role;
         state.isAuthenticated = true;
         state.error = null;
@@ -86,6 +124,8 @@ const authSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload;
       })
+      // Logout
+      .addCase(logoutUser.fulfilled, resetSession)
       // Update user cases
       .addCase(updateUser.pending, (state) => {
         state.status = 'loading';
@@ -104,10 +144,7 @@ const authSlice = createSlice({
   }
 });
 
-export const { logout } = authSlice.actions;
-
 export const selectCurrentUser = (state) => state.auth.user;
-export const selectCurrentToken = (state) => state.auth.token;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectUserRole = (state) => state.auth.role;
 export const selectAuthStatus = (state) => state.auth.status;

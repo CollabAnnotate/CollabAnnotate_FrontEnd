@@ -50,18 +50,17 @@ const ProjectCard = ({ project }) => {
         <Typography variant="h5" component="div" gutterBottom noWrap>
           {project.name}
         </Typography>
-        <Typography 
-          variant="body2" 
-          color="text.secondary" 
-          sx={{ 
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
             mb: 2,
             display: '-webkit-box',
             WebkitLineClamp: 3,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             height: '4.5em'
-          }}
-        >
+          }}>
           {project.description}
         </Typography>
         <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -194,8 +193,14 @@ const ProjectList = () => {
 
       {/* Filtres */}
       <Paper sx={{ p: 2, mb: 4 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={4}>
+        <Grid container spacing={2} sx={{
+          alignItems: "center"
+        }}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 4
+            }}>
             <TextField
               fullWidth
               variant="outlined"
@@ -203,16 +208,22 @@ const ProjectList = () => {
               label="Rechercher"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 4
+            }}>
             <FormControl fullWidth size="small">
               <InputLabel>Visibilité</InputLabel>
               <Select
@@ -226,7 +237,11 @@ const ProjectList = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 4
+            }}>
             <FormControl fullWidth size="small">
               <InputLabel>Trier par</InputLabel>
               <Select
@@ -246,7 +261,13 @@ const ProjectList = () => {
       {/* Liste des projets */}
       <Grid container spacing={3}>
         {filteredProjects.map((project) => (
-          <Grid item xs={12} sm={6} md={4} key={project.id}>
+          <Grid
+            key={project.id}
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 4
+            }}>
             <ProjectCard project={project} />
           </Grid>
         ))}

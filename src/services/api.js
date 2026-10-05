@@ -1,62 +1,118 @@
 import axios from 'axios';
+import config from '../config';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/';
+const API_URL = config.API_URL;
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  // Envoie le cookie HttpOnly du refresh token vers l'API
+  withCredentials: true
 });
+
+// Access token gardé uniquement en mémoire : jamais dans le localStorage, où
+// n'importe quel script (XSS) pourrait le lire. Perdu au rechargement de la page,
+// il est alors restauré via le cookie de refresh (voir restoreSession).
+let accessToken = null;
+
+export const setAccessToken = (token) => {
+  accessToken = token;
+};
+export const getAccessToken = () => accessToken;
+export const clearAccessToken = () => {
+  accessToken = null;
+};
 
 // Gestion du token
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
 }, error => {
   return Promise.reject(error);
 });
 
+// Routes d'authentification : un 401 sur elles ne doit jamais déclencher de refresh
+const AUTH_URLS = ['token/', 'token/refresh/', 'token/logout/'];
+
+// Refresh en cours, partagé par toutes les requêtes qui reçoivent un 401 en même temps.
+// Le backend fait tourner les refresh tokens et blackliste l'ancien : deux refresh
+// parallèles avec le même cookie feraient échouer le second.
+let refreshPromise = null;
+
+// Le cookie est commun à tous les onglets : un verrou navigateur évite que deux
+// onglets rafraîchissent en même temps avec le même cookie.
+const withRefreshLock = (callback) =>
+  navigator.locks ? navigator.locks.request('token-refresh', callback) : callback();
+
+export const refreshAccessToken = () => {
+  if (!refreshPromise) {
+    refreshPromise = withRefreshLock(() => authAPI.refreshToken())
+      .then(({ data }) => {
+        setAccessToken(data.access);
+        return data.access;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+};
+
+const clearSessionAndRedirect = () => {
+  clearAccessToken();
+  window.location.href = '/login';
+};
+
 // Gestion des erreurs de réponse
 api.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
-    
-    // Si l'erreur est 401 et que nous n'avons pas déjà tenté de rafraîchir le token
-    if (error.response.status === 401 && !originalRequest._retry) {
+
+    const shouldRefresh =
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !AUTH_URLS.includes(originalRequest.url);
+
+    if (shouldRefresh) {
       originalRequest._retry = true;
-      
+
       try {
-        // Tentative de rafraîchissement du token
-        const refreshToken = localStorage.getItem('refresh_token');
-        if (refreshToken) {
-          const response = await authAPI.refreshToken({ refresh: refreshToken });
-          const newToken = response.data.access;
-          
-          // Mise à jour du token dans le localStorage
-          localStorage.setItem('token', newToken);
-          
-          // Mise à jour du header d'autorisation pour la requête originale
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          
-          // Réessayer la requête originale avec le nouveau token
-          return api(originalRequest);
-        }
+        const newToken = await refreshAccessToken();
+        // Réessayer la requête originale avec le nouveau token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
       } catch (refreshError) {
-        // En cas d'échec du rafraîchissement, déconnexion
-        localStorage.removeItem('token');
-        localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
+        // Refresh token expiré ou blacklisté : déconnexion
+        clearSessionAndRedirect();
+        return Promise.reject(refreshError);
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
+
+// Transforme une erreur DRF en message lisible. DRF renvoie selon les cas
+// {detail}, {error}, une liste, ou un objet {champ: [messages]}.
+export const getApiErrorMessage = (error, fallback = 'Une erreur est survenue') => {
+  const data = error?.response?.data;
+  if (!data) return fallback;
+  if (typeof data === 'string') return data;
+  if (Array.isArray(data)) return data.join(' ');
+  if (data.detail) return data.detail;
+  if (data.error) return data.error;
+  const messages = Object.entries(data).map(([field, value]) => {
+    const text = Array.isArray(value) ? value.join(' ') : String(value);
+    return field === 'non_field_errors' ? text : `${field} : ${text}`;
+  });
+  return messages.length ? messages.join(' — ') : fallback;
+};
 
 // API Auth
 export const authAPI = {
@@ -66,8 +122,12 @@ export const authAPI = {
   register: (userData) => {
     return api.post('register/', userData);
   },
-  refreshToken: (refresh) => {
-    return api.post('token/refresh/', refresh);
+  // Le refresh token voyage dans le cookie HttpOnly : pas de corps à envoyer
+  refreshToken: () => {
+    return api.post('token/refresh/');
+  },
+  logout: () => {
+    return api.post('token/logout/');
   },
   verifyToken: (token) => {
     return api.post('token/verify/', { token });
@@ -135,8 +195,19 @@ export const annotationAPI = {
 };
 
 // API Users
+export const notificationsAPI = {
+  getNotifications: () => api.get('notifications/'),
+  markAsRead: (id) => api.post(`notifications/${id}/mark_as_read/`),
+  markAllAsRead: () => api.post('notifications/mark_all_as_read/'),
+};
+
 export const usersAPI = {
-  getUsers: () => api.get('users/'),
+  // Back-office réservé aux administrateurs
+  getUsers: () => api.get('admin/users/'),
+  createUser: (data) => api.post('admin/users/', data),
+  updateUser: (id, data) => api.patch(`admin/users/${id}/`, data),
+  deleteUser: (id) => api.delete(`admin/users/${id}/`),
+  // Compte de l'utilisateur connecté
   getCurrentUser: () => api.get('users/me/'),
   updateProfile: (data) => api.patch('users/me/', data, {
     headers: {
