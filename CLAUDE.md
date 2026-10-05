@@ -12,13 +12,14 @@ Chaque changement part d'une **GitHub Issue** et suit les skills du dépôt, dan
 4. `/review` — `/code-review` + checklist du dépôt (✋ validation)
 5. `/merge` — PR, CI verte, squash-merge (✋ validation)
 
-### Hooks et agents (`.claude/hooks/`, `.claude/agents/`)
+### Hooks et agents
 
-- **Hooks** (déclarés dans `.claude/settings.json`, testés par `.claude/hooks/hooks.test.mjs`) :
-  - `guard-bash.mjs` bloque le push sur `main`, `--force`, `--no-verify`, `git add` de `.env` / `dist/` / `coverage/` et un merge autrement qu'en squash ;
-  - `guard-files.mjs` protège les `.env` ;
-  - `format.mjs` passe Prettier sur chaque fichier modifié ;
-  - `session-context.mjs` rappelle la branche, l'issue et la PR en début de session.
+- **Hooks**, écrits directement dans la section `hooks` de `.claude/settings.json` :
+  - avant une commande Bash ou PowerShell : bloque le push sur `main`, `--force`, `--no-verify`, `git add` de `.env` / `dist/` / `coverage/` et un merge autrement qu'en squash ;
+  - avant l'écriture d'un fichier : protège les `.env` ;
+  - après l'écriture d'un fichier : passe Prettier sur le fichier modifié ;
+  - au démarrage d'une session : rappelle la branche et la PR ouverte.
+- Le blocage de `git push` (sans argument) depuis `main` n'est pas couvert par le hook : il reste une règle de `.claude/rules/git.md`.
 - **Agents de review** (lecture seule, lancés par `/review`) : `ui-reviewer` et `test-reviewer`.
 - Ils ne s'appliquent que si Claude Code est lancé **depuis ce dossier**.
 

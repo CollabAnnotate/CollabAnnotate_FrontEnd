@@ -26,8 +26,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.mjs\"",
-            "timeout": 20
+            "command": "echo \"Dépôt CollabAnnotate_FrontEnd - branche : $(git branch --show-current)\"; gh pr view --json number,title,url --jq '\"PR ouverte : #\\(.number) \\(.title) \\(.url)\"' 2>/dev/null || true",
+            "timeout": 15
           }
         ]
       }
@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.mjs\"",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const i=JSON.parse(d||'{}').tool_input||{};if(/git\\s+push\\b[^;&|]*(\\s|:)(main|master)(\\s|$)|git\\s+push\\b[^;&|]*\\s(--force|-f)(\\s|$)|--no-verify|gh\\s+pr\\s+merge(?![^;&|]*--squash)|git\\s+add\\b[^;&|]*(\\.env(?!\\.example)|dist|coverage)/.test(i.command||'')){console.error('Bloqué par le hook : push sur main, --force, --no-verify, merge sans --squash ou ajout de .env / dist / coverage interdits.');process.exit(2)}})\"",
             "timeout": 10
           }
         ]
@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-files.mjs\"",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const i=JSON.parse(d||'{}').tool_input||{};if(/(^|[\\\\/])\\.env(\\.(?!example$)[^\\\\/]*)?$/.test(i.file_path||'')){console.error('Bloqué par le hook : les fichiers .env se modifient à la main.');process.exit(2)}})\"",
             "timeout": 10
           }
         ]
@@ -60,7 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format.mjs\"",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const i=JSON.parse(d||'{}').tool_input||{};if(!i.file_path)return;const r=require('child_process').spawnSync(process.execPath,[require('path').join(process.env.CLAUDE_PROJECT_DIR||'.','node_modules','prettier','bin','prettier.cjs'),'--write','--ignore-unknown',i.file_path],{encoding:'utf8'});if(r.status){console.error('Prettier : '+r.stderr);process.exit(2)}})\"",
             "timeout": 30
           }
         ]
