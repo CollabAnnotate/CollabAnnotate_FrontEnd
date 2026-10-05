@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Box, 
-  Button, 
-  Grid, 
-  Paper, 
-  Typography, 
+import {
+  Box,
+  Button,
+  Grid,
+  Paper,
+  Typography,
   List,
   ListItem,
   ListItemText,
@@ -15,33 +15,20 @@ import {
   DialogActions,
   TextField,
   CircularProgress,
-  Alert
+  Alert,
 } from '@mui/material';
-import { 
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  Save as SaveIcon
-} from '@mui/icons-material';
+import { Delete as DeleteIcon, Edit as EditIcon, Save as SaveIcon } from '@mui/icons-material';
 import { Stage, Layer, Rect, Transformer, Image as KonvaImage, Group } from 'react-konva';
 import { annotationAPI } from '../../services/api';
 
 // Nouvelle fonction de validation
 const validateAnnotations = (annotations) => {
-  return annotations.every(ann => 
-    ann.label.trim() && 
-    ann.x_max > ann.x_min && 
-    ann.y_max > ann.y_min
+  return annotations.every(
+    (ann) => ann.label.trim() && ann.x_max > ann.x_min && ann.y_max > ann.y_min,
   );
 };
 
-const BoundingBox = ({ 
-  annotation, 
-  isSelected, 
-  onSelect, 
-  onChange,
-  imageScale,
-  stageRef 
-}) => {
+const BoundingBox = ({ annotation, isSelected, onSelect, onChange, imageScale, stageRef }) => {
   const shapeRef = useRef();
   const transformerRef = useRef();
 
@@ -75,26 +62,26 @@ const BoundingBox = ({
           const node = e.target;
           const scaleX = 1 / imageScale.width;
           const scaleY = 1 / imageScale.height;
-          
+
           onChange({
             ...annotation,
             x_min: node.x() * scaleX,
             y_min: node.y() * scaleY,
             x_max: (node.x() + node.width()) * scaleX,
-            y_max: (node.y() + node.height()) * scaleY
+            y_max: (node.y() + node.height()) * scaleY,
           });
         }}
         onTransformEnd={(e) => {
           const node = e.target;
           const scaleX = 1 / imageScale.width;
           const scaleY = 1 / imageScale.height;
-          
+
           onChange({
             ...annotation,
             x_min: node.x() * scaleX,
             y_min: node.y() * scaleY,
             x_max: (node.x() + node.width()) * scaleX,
-            y_max: (node.y() + node.height()) * scaleY
+            y_max: (node.y() + node.height()) * scaleY,
           });
         }}
       />
@@ -122,7 +109,7 @@ const BoundingBoxEditor = ({ annotation, onUpdate }) => {
     setLabel(newLabel);
     onUpdate({
       ...annotation,
-      label: newLabel
+      label: newLabel,
     });
   };
 
@@ -141,7 +128,7 @@ const BoundingBoxEditor = ({ annotation, onUpdate }) => {
         placeholder="Entrez un label pour cette annotation"
       />
       <Typography variant="caption" color="textSecondary">
-        Position: ({(annotation.x_min * 100).toFixed(1)}%, {(annotation.y_min * 100).toFixed(1)}%) - 
+        Position: ({(annotation.x_min * 100).toFixed(1)}%, {(annotation.y_min * 100).toFixed(1)}%) -
         ({(annotation.x_max * 100).toFixed(1)}%, {(annotation.y_max * 100).toFixed(1)}%)
       </Typography>
     </Box>
@@ -165,25 +152,22 @@ const ImageAnnotator = ({ image, onSave, existingAnnotations = [] }) => {
     img.onload = () => {
       setImageObj(img);
       setImageLoaded(true);
-      
+
       // Calculer l'échelle pour adapter l'image à la fenêtre
       const maxWidth = window.innerWidth * 0.8;
       const maxHeight = window.innerHeight * 0.6;
-      const scale = Math.min(
-        maxWidth / img.width,
-        maxHeight / img.height
-      );
+      const scale = Math.min(maxWidth / img.width, maxHeight / img.height);
       setScale(scale);
     };
   }, [image]);
 
   const handleMouseDown = (e) => {
     if (!drawing) return;
-    
+
     const stage = e.target.getStage();
     const point = stage.getPointerPosition();
     const { x, y } = point;
-    
+
     setStartPoint({ x, y });
   };
 
@@ -193,10 +177,10 @@ const ImageAnnotator = ({ image, onSave, existingAnnotations = [] }) => {
     const stage = e.target.getStage();
     const point = stage.getPointerPosition();
     const { x, y } = point;
-    
+
     const width = x - startPoint.x;
     const height = y - startPoint.y;
-    
+
     const annotation = {
       x_min: Math.min(startPoint.x, x) / (stage.width() * scale),
       y_min: Math.min(startPoint.y, y) / (stage.height() * scale),
@@ -204,9 +188,9 @@ const ImageAnnotator = ({ image, onSave, existingAnnotations = [] }) => {
       y_max: Math.max(startPoint.y, y) / (stage.height() * scale),
       label: '',
     };
-    
+
     // Mettre à jour la dernière annotation
-    setAnnotations(prev => {
+    setAnnotations((prev) => {
       const newAnnotations = [...prev];
       newAnnotations[newAnnotations.length - 1] = annotation;
       return newAnnotations;
@@ -221,16 +205,14 @@ const ImageAnnotator = ({ image, onSave, existingAnnotations = [] }) => {
 
   const startDrawing = () => {
     setDrawing(true);
-    setAnnotations(prev => [...prev, {}]);
+    setAnnotations((prev) => [...prev, {}]);
   };
 
   const handleSave = () => {
     if (onSave) {
-      onSave(annotations.filter(ann => 
-        ann.label && 
-        ann.x_max > ann.x_min && 
-        ann.y_max > ann.y_min
-      ));
+      onSave(
+        annotations.filter((ann) => ann.label && ann.x_max > ann.x_min && ann.y_max > ann.y_min),
+      );
     }
   };
 
@@ -241,11 +223,7 @@ const ImageAnnotator = ({ image, onSave, existingAnnotations = [] }) => {
   return (
     <Box>
       <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
-        <Button
-          variant="contained"
-          onClick={startDrawing}
-          disabled={drawing}
-        >
+        <Button variant="contained" onClick={startDrawing} disabled={drawing}>
           Dessiner une annotation
         </Button>
         <Button

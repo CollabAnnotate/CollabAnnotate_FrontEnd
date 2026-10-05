@@ -26,7 +26,7 @@ export const restoreSession = createAsyncThunk(
       clearAccessToken();
       return rejectWithValue(null);
     }
-  }
+  },
 );
 
 // Thunk pour la connexion
@@ -44,7 +44,7 @@ export const loginUser = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response?.data?.detail || 'Erreur de connexion');
     }
-  }
+  },
 );
 
 // Thunk pour la déconnexion : le serveur révoque le refresh token et vide le cookie
@@ -70,7 +70,7 @@ export const updateUser = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(getApiErrorMessage(err, 'Erreur lors de la mise à jour du profil'));
     }
-  }
+  },
 );
 
 const initialState = {
@@ -80,7 +80,7 @@ const initialState = {
   // false tant que restoreSession n'a pas déterminé si l'utilisateur est connecté
   initialized: false,
   status: 'idle',
-  error: null
+  error: null,
 };
 
 const resetSession = (state) => {
@@ -141,7 +141,7 @@ const authSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload;
       });
-  }
+  },
 });
 
 export const selectCurrentUser = (state) => state.auth.user;

@@ -19,7 +19,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Snackbar
+  Snackbar,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -27,7 +27,7 @@ import {
   Delete as DeleteIcon,
   Save as SaveIcon,
   AutoFixHigh as AutoDetectIcon,
-  Compare as CompareIcon
+  Compare as CompareIcon,
 } from '@mui/icons-material';
 import { annotationAPI } from '../../services/api';
 import ImageAnnotator from './ImageAnnotator';
@@ -48,7 +48,7 @@ const AnnotationInterface = () => {
   const [qualityMetrics, setQualityMetrics] = useState({
     precision: 0,
     recall: 0,
-    f1Score: 0
+    f1Score: 0,
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
@@ -58,25 +58,25 @@ const AnnotationInterface = () => {
       setLoading(true);
       const response = await annotationAPI.updateAnnotation(updatedAnnotation.id, {
         ...updatedAnnotation,
-        modification_type: modificationType
+        modification_type: modificationType,
       });
-      
+
       // Mettre à jour l'état local avec la nouvelle annotation
-      setAnnotations(annotations.map(ann => 
-        ann.id === updatedAnnotation.id ? response.data : ann
-      ));
+      setAnnotations(
+        annotations.map((ann) => (ann.id === updatedAnnotation.id ? response.data : ann)),
+      );
 
       setSnackbar({
         open: true,
         message: 'Annotation mise à jour avec succès',
-        severity: 'success'
+        severity: 'success',
       });
     } catch (error) {
-      console.error('Erreur lors de la mise à jour de l\'annotation:', error);
+      console.error("Erreur lors de la mise à jour de l'annotation:", error);
       setSnackbar({
         open: true,
-        message: 'Erreur lors de la mise à jour de l\'annotation',
-        severity: 'error'
+        message: "Erreur lors de la mise à jour de l'annotation",
+        severity: 'error',
       });
     } finally {
       setLoading(false);
@@ -87,22 +87,24 @@ const AnnotationInterface = () => {
   const renderAnnotationArea = () => (
     <Box sx={{ width: '100%', height: '70vh', position: 'relative' }}>
       {loading && (
-        <Box sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'rgba(255, 255, 255, 0.7)',
-          zIndex: 1
-        }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            zIndex: 1,
+          }}
+        >
           <CircularProgress />
         </Box>
       )}
-      
+
       <ImageAnnotator
         image={currentImage}
         annotations={mode === 'compare' ? yoloDetections : annotations}
@@ -122,14 +124,17 @@ const AnnotationInterface = () => {
     try {
       const [annotationsResponse, detectionsResponse] = await Promise.all([
         annotationAPI.getAnnotations(currentImage.id),
-        annotationAPI.getYoloDetections(currentImage.id)
+        annotationAPI.getYoloDetections(currentImage.id),
       ]);
-      
+
       setAnnotations(annotationsResponse.data);
       setYoloDetections(detectionsResponse.data.detections);
-      
+
       // Calculate quality metrics
-      const metrics = calculateQualityMetrics(annotationsResponse.data, detectionsResponse.data.detections);
+      const metrics = calculateQualityMetrics(
+        annotationsResponse.data,
+        detectionsResponse.data.detections,
+      );
       setQualityMetrics(metrics);
     } catch (err) {
       setError('Erreur lors du chargement des annotations');
@@ -141,13 +146,13 @@ const AnnotationInterface = () => {
   const calculateQualityMetrics = (annotations, detections) => {
     // Implement IOU-based metrics calculation
     // This is a simplified example
-    const matches = annotations.filter(ann => 
-      detections.some(det => calculateIOU(ann, det) > 0.5)
+    const matches = annotations.filter((ann) =>
+      detections.some((det) => calculateIOU(ann, det) > 0.5),
     );
 
     const precision = matches.length / detections.length || 0;
     const recall = matches.length / annotations.length || 0;
-    const f1Score = 2 * (precision * recall) / (precision + recall) || 0;
+    const f1Score = (2 * (precision * recall)) / (precision + recall) || 0;
 
     return { precision, recall, f1Score };
   };
@@ -157,19 +162,18 @@ const AnnotationInterface = () => {
       x_min: Math.max(box1.x_min, box2.x_min),
       y_min: Math.max(box1.y_min, box2.y_min),
       x_max: Math.min(box1.x_max, box2.x_max),
-      y_max: Math.min(box1.y_max, box2.y_max)
+      y_max: Math.min(box1.y_max, box2.y_max),
     };
 
-    if (intersection.x_max <= intersection.x_min || 
-        intersection.y_max <= intersection.y_min) {
+    if (intersection.x_max <= intersection.x_min || intersection.y_max <= intersection.y_min) {
       return 0;
     }
 
-    const intersectionArea = (intersection.x_max - intersection.x_min) * 
-                            (intersection.y_max - intersection.y_min);
+    const intersectionArea =
+      (intersection.x_max - intersection.x_min) * (intersection.y_max - intersection.y_min);
     const box1Area = (box1.x_max - box1.x_min) * (box1.y_max - box1.y_min);
     const box2Area = (box2.x_max - box2.x_min) * (box2.y_max - box2.y_min);
-    
+
     return intersectionArea / (box1Area + box2Area - intersectionArea);
   };
 
@@ -201,9 +205,7 @@ const AnnotationInterface = () => {
           </Box>
         </Grid>
 
-        <Grid size={12}>
-          {renderAnnotationArea()}
-        </Grid>
+        <Grid size={12}>{renderAnnotationArea()}</Grid>
 
         {/* Liste des annotations */}
         <Grid size={12}>
@@ -216,7 +218,7 @@ const AnnotationInterface = () => {
                 key={ann.id}
                 sx={{
                   bgcolor: selectedLabel === ann.id ? 'action.selected' : 'transparent',
-                  '&:hover': { bgcolor: 'action.hover' }
+                  '&:hover': { bgcolor: 'action.hover' },
                 }}
               >
                 <ListItemText
@@ -248,7 +250,9 @@ const AnnotationInterface = () => {
               onChange={(e) => setTempAnnotation({ ...tempAnnotation, label: e.target.value })}
             >
               {availableLabels.map((label) => (
-                <MenuItem key={label} value={label}>{label}</MenuItem>
+                <MenuItem key={label} value={label}>
+                  {label}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>

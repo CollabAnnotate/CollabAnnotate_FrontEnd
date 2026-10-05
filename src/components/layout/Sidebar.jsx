@@ -8,7 +8,7 @@ import {
   ListItemButton,
   Divider,
   Box,
-  Typography
+  Typography,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -16,7 +16,7 @@ import {
   CheckCircle as ValidationIcon,
   Assessment as ReportIcon,
   People as UsersIcon,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -31,32 +31,32 @@ const Sidebar = ({ open, onClose }) => {
       text: 'Dashboard',
       icon: <DashboardIcon />,
       path: '/dashboard',
-      roles: ['annotateur', 'verificateur', 'admin']
+      roles: ['annotateur', 'verificateur', 'admin'],
     },
     {
       text: 'Annotation',
       icon: <ImageIcon />,
       path: '/annotation',
-      roles: ['annotateur', 'admin']
+      roles: ['annotateur', 'admin'],
     },
     {
       text: 'Révision',
       icon: <ValidationIcon />,
       path: '/revision',
-      roles: ['verificateur', 'admin']
+      roles: ['verificateur', 'admin'],
     },
     {
       text: 'Rapports',
       icon: <ReportIcon />,
       path: '/reports',
-      roles: ['admin']
+      roles: ['admin'],
     },
     {
       text: 'Utilisateurs',
       icon: <UsersIcon />,
       path: '/users',
-      roles: ['admin']
-    }
+      roles: ['admin'],
+    },
   ];
 
   const handleNavigate = (path) => {
@@ -66,9 +66,7 @@ const Sidebar = ({ open, onClose }) => {
     }
   };
 
-  const filteredMenuItems = menuItems.filter(
-    item => item.roles.includes(user?.role)
-  );
+  const filteredMenuItems = menuItems.filter((item) => item.roles.includes(user?.role));
 
   return (
     <Drawer
@@ -98,9 +96,7 @@ const Sidebar = ({ open, onClose }) => {
               selected={location.pathname === item.path}
               onClick={() => handleNavigate(item.path)}
             >
-              <ListItemIcon>
-                {item.icon}
-              </ListItemIcon>
+              <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>

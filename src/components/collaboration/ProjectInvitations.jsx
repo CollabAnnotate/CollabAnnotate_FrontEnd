@@ -49,7 +49,7 @@ const ProjectInvitations = () => {
       await api.post(`project-invitations/${invitationId}/accept/`);
       fetchInvitations();
     } catch (error) {
-      console.error('Erreur lors de l\'acceptation de l\'invitation:', error);
+      console.error("Erreur lors de l'acceptation de l'invitation:", error);
     }
   };
 
@@ -58,7 +58,7 @@ const ProjectInvitations = () => {
       await api.post(`project-invitations/${invitationId}/reject/`);
       fetchInvitations();
     } catch (error) {
-      console.error('Erreur lors du rejet de l\'invitation:', error);
+      console.error("Erreur lors du rejet de l'invitation:", error);
     }
   };
 
@@ -73,10 +73,7 @@ const ProjectInvitations = () => {
           >
             Accepter
           </Button>
-          <Button
-            color="error"
-            onClick={() => handleRejectInvitation(invitation.id)}
-          >
+          <Button color="error" onClick={() => handleRejectInvitation(invitation.id)}>
             Refuser
           </Button>
         </>
@@ -116,9 +113,7 @@ const ProjectInvitations = () => {
                     size="small"
                   />
                 </TableCell>
-                <TableCell>
-                  {new Date(invitation.created_at).toLocaleDateString()}
-                </TableCell>
+                <TableCell>{new Date(invitation.created_at).toLocaleDateString()}</TableCell>
                 <TableCell>{renderActions(invitation)}</TableCell>
               </TableRow>
             ))}

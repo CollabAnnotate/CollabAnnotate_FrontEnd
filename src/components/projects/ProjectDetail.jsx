@@ -70,7 +70,7 @@ const ProjectDetail = () => {
     const rect = imageRef.current.getBoundingClientRect();
     return {
       x: (event.clientX - rect.left) / rect.width,
-      y: (event.clientY - rect.top) / rect.height
+      y: (event.clientY - rect.top) / rect.height,
     };
   };
 
@@ -80,7 +80,7 @@ const ProjectDetail = () => {
     setIsDragging(true);
     setDragStart({
       x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      y: e.clientY - rect.top,
     });
     handleAnnotationEdit(annotation);
   };
@@ -102,28 +102,28 @@ const ProjectDetail = () => {
           newAnnotation = {
             ...newAnnotation,
             x_min: Math.min(Math.max(x, 0), newAnnotation.x_max - 0.01),
-            y_min: Math.min(Math.max(y, 0), newAnnotation.y_max - 0.01)
+            y_min: Math.min(Math.max(y, 0), newAnnotation.y_max - 0.01),
           };
           break;
         case 'ne':
           newAnnotation = {
             ...newAnnotation,
             x_max: Math.max(Math.min(x, 1), newAnnotation.x_min + 0.01),
-            y_min: Math.min(Math.max(y, 0), newAnnotation.y_max - 0.01)
+            y_min: Math.min(Math.max(y, 0), newAnnotation.y_max - 0.01),
           };
           break;
         case 'sw':
           newAnnotation = {
             ...newAnnotation,
             x_min: Math.min(Math.max(x, 0), newAnnotation.x_max - 0.01),
-            y_max: Math.max(Math.min(y, 1), newAnnotation.y_min + 0.01)
+            y_max: Math.max(Math.min(y, 1), newAnnotation.y_min + 0.01),
           };
           break;
         case 'se':
           newAnnotation = {
             ...newAnnotation,
             x_max: Math.max(Math.min(x, 1), newAnnotation.x_min + 0.01),
-            y_max: Math.max(Math.min(y, 1), newAnnotation.y_min + 0.01)
+            y_max: Math.max(Math.min(y, 1), newAnnotation.y_min + 0.01),
           };
           break;
         default:
@@ -135,38 +135,36 @@ const ProjectDetail = () => {
       // Déplacement de la boîte
       const width = editedAnnotation.x_max - editedAnnotation.x_min;
       const height = editedAnnotation.y_max - editedAnnotation.y_min;
-      
+
       let newX_min = editedAnnotation.x_min + deltaX;
       let newY_min = editedAnnotation.y_min + deltaY;
-      
+
       // Empêcher la boîte de sortir des limites
       if (newX_min < 0) newX_min = 0;
       if (newY_min < 0) newY_min = 0;
       if (newX_min + width > 1) newX_min = 1 - width;
       if (newY_min + height > 1) newY_min = 1 - height;
-      
+
       setEditedAnnotation({
         ...editedAnnotation,
         x_min: newX_min,
         y_min: newY_min,
         x_max: newX_min + width,
-        y_max: newY_min + height
+        y_max: newY_min + height,
       });
     }
 
     setDragStart({
       x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      y: e.clientY - rect.top,
     });
   };
 
   const handleBoxMouseUp = () => {
     if (isDragging && editedAnnotation) {
       // Mettre à jour l'annotation dans le tableau principal
-      setAnnotations(prevAnnotations => 
-        prevAnnotations.map(ann => 
-          ann.id === editedAnnotation.id ? editedAnnotation : ann
-        )
+      setAnnotations((prevAnnotations) =>
+        prevAnnotations.map((ann) => (ann.id === editedAnnotation.id ? editedAnnotation : ann)),
       );
     }
     setIsDragging(false);
@@ -182,12 +180,10 @@ const ProjectDetail = () => {
     if (editedAnnotation) {
       const updatedAnnotation = { ...editedAnnotation, [field]: value };
       setEditedAnnotation(updatedAnnotation);
-      
+
       // Mettre à jour immédiatement dans le tableau principal
-      setAnnotations(prevAnnotations => 
-        prevAnnotations.map(ann => 
-          ann.id === updatedAnnotation.id ? updatedAnnotation : ann
-        )
+      setAnnotations((prevAnnotations) =>
+        prevAnnotations.map((ann) => (ann.id === updatedAnnotation.id ? updatedAnnotation : ann)),
       );
     }
   };
@@ -195,7 +191,7 @@ const ProjectDetail = () => {
   const handleSaveAnnotation = async (editedAnnotation) => {
     try {
       let savedAnnotation;
-      
+
       // Si c'est une détection YOLO (l'id commence par 'yolo-')
       if (typeof editedAnnotation.id === 'string' && editedAnnotation.id.startsWith('yolo-')) {
         // Créer une nouvelle annotation à partir de la détection YOLO
@@ -207,9 +203,9 @@ const ProjectDetail = () => {
           y_max: editedAnnotation.y_max,
           confidence: editedAnnotation.confidence || 1.0,
           dataitem: editedAnnotation.dataitem,
-          type: 'manual'
+          type: 'manual',
         };
-        
+
         const response = await annotationAPI.createAnnotation(newAnnotationData);
         savedAnnotation = response.data;
       } else {
@@ -220,33 +216,37 @@ const ProjectDetail = () => {
           y_min: editedAnnotation.y_min,
           x_max: editedAnnotation.x_max,
           y_max: editedAnnotation.y_max,
-          modification_type: 'manual'
+          modification_type: 'manual',
         };
-        
+
         const response = await annotationAPI.updateAnnotation(editedAnnotation.id, annotationData);
         savedAnnotation = response.data;
       }
 
       // Mettre à jour la liste des annotations
-      setAnnotations(annotations.map(ann => 
-        (typeof ann.id === 'string' && ann.id.startsWith('yolo-') && ann.id === editedAnnotation.id) || 
-        ann.id === editedAnnotation.id 
-          ? savedAnnotation 
-          : ann
-      ));
+      setAnnotations(
+        annotations.map((ann) =>
+          (typeof ann.id === 'string' &&
+            ann.id.startsWith('yolo-') &&
+            ann.id === editedAnnotation.id) ||
+          ann.id === editedAnnotation.id
+            ? savedAnnotation
+            : ann,
+        ),
+      );
 
       setSelectedAnnotation(savedAnnotation);
       setEditedAnnotation(null);
       setError(null);
-      
+
       // Message de succès
       // setSnackbarMessage('Annotation sauvegardée avec succès');
       // setSnackbarSeverity('success');
       // setSnackbarOpen(true);
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde de l\'annotation:', error);
-      setError('Erreur lors de la sauvegarde de l\'annotation');
-      
+      console.error("Erreur lors de la sauvegarde de l'annotation:", error);
+      setError("Erreur lors de la sauvegarde de l'annotation");
+
       // Message d'erreur
       // setSnackbarMessage('Erreur lors de la sauvegarde de l\'annotation');
       // setSnackbarSeverity('error');
@@ -257,12 +257,10 @@ const ProjectDetail = () => {
   const handleSaveEdit = () => {
     if (editedAnnotation) {
       // Mettre à jour l'annotation dans le tableau principal
-      setAnnotations(prevAnnotations => 
-        prevAnnotations.map(ann => 
-          ann.id === editedAnnotation.id ? editedAnnotation : ann
-        )
+      setAnnotations((prevAnnotations) =>
+        prevAnnotations.map((ann) => (ann.id === editedAnnotation.id ? editedAnnotation : ann)),
       );
-      
+
       // Réinitialiser l'état d'édition
       setSelectedAnnotation(null);
       setEditedAnnotation(null);
@@ -272,10 +270,8 @@ const ProjectDetail = () => {
   const handleCancelEdit = () => {
     // Restaurer l'annotation originale
     if (selectedAnnotation) {
-      setAnnotations(prevAnnotations => 
-        prevAnnotations.map(ann => 
-          ann.id === selectedAnnotation.id ? selectedAnnotation : ann
-        )
+      setAnnotations((prevAnnotations) =>
+        prevAnnotations.map((ann) => (ann.id === selectedAnnotation.id ? selectedAnnotation : ann)),
       );
     }
     setSelectedAnnotation(null);
@@ -288,11 +284,11 @@ const ProjectDetail = () => {
 
       // Si c'est une détection YOLO qui n'a pas encore été sauvegardée
       if (typeof annotationToDelete.id === 'string' && annotationToDelete.id.startsWith('yolo-')) {
-        setAnnotations(annotations.filter(ann => ann.id !== annotationToDelete.id));
+        setAnnotations(annotations.filter((ann) => ann.id !== annotationToDelete.id));
       } else {
         // Supprimer l'annotation de la base de données
         await annotationAPI.deleteAnnotation(annotationToDelete.id);
-        setAnnotations(annotations.filter(ann => ann.id !== annotationToDelete.id));
+        setAnnotations(annotations.filter((ann) => ann.id !== annotationToDelete.id));
       }
 
       // Réinitialiser la sélection si l'annotation supprimée était sélectionnée
@@ -322,7 +318,7 @@ const ProjectDetail = () => {
       const [projectRes, statsRes, imagesRes] = await Promise.all([
         projectsAPI.getProject(id),
         projectsAPI.getProjectStats(id),
-        projectsAPI.getProjectImages(id)
+        projectsAPI.getProjectImages(id),
       ]);
 
       setProject(projectRes.data);
@@ -344,12 +340,12 @@ const ProjectDetail = () => {
         description: '',
         status: 'draft',
         visibility: 'private',
-        allow_community_annotations: true
+        allow_community_annotations: true,
       });
       setStats({
         total_images: 0,
         total_annotations: 0,
-        pending_annotations: 0
+        pending_annotations: 0,
       });
       setImages([]);
       setLoading(false);
@@ -366,7 +362,7 @@ const ProjectDetail = () => {
         description: project.description,
         allow_community_annotations: project.allow_community_annotations,
         status: project.status || 'draft',
-        visibility: project.visibility || 'private'
+        visibility: project.visibility || 'private',
       };
 
       if (id === 'new') {
@@ -383,9 +379,9 @@ const ProjectDetail = () => {
   };
 
   const handleChange = (field, value) => {
-    setProject(prev => ({
+    setProject((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -401,10 +397,10 @@ const ProjectDetail = () => {
     try {
       const response = await projectsAPI.addImages(id, formData);
       // Mettre à jour la liste des images avec les nouvelles images
-      setImages(prevImages => [...prevImages, ...response.data]);
+      setImages((prevImages) => [...prevImages, ...response.data]);
     } catch (error) {
-      console.error('Erreur lors de l\'upload des images:', error);
-      setError('Erreur lors de l\'upload des images');
+      console.error("Erreur lors de l'upload des images:", error);
+      setError("Erreur lors de l'upload des images");
     }
   };
 
@@ -422,7 +418,11 @@ const ProjectDetail = () => {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')) {
+    if (
+      window.confirm(
+        'Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.',
+      )
+    ) {
       try {
         await projectsAPI.deleteProject(id);
         navigate('/projects', { state: { message: 'Projet supprimé avec succès' } });
@@ -435,17 +435,19 @@ const ProjectDetail = () => {
 
   const handleAnnotationSave = async (annotations) => {
     try {
-      await Promise.all(annotations.map(annotation => 
-        annotationAPI.createAnnotation({
-          dataitem: selectedImage.id,  
-          label: annotation.label,
-          x_min: annotation.x_min,
-          y_min: annotation.y_min,
-          x_max: annotation.x_max,
-          y_max: annotation.y_max
-        })
-      ));
-      
+      await Promise.all(
+        annotations.map((annotation) =>
+          annotationAPI.createAnnotation({
+            dataitem: selectedImage.id,
+            label: annotation.label,
+            x_min: annotation.x_min,
+            y_min: annotation.y_min,
+            x_max: annotation.x_max,
+            y_max: annotation.y_max,
+          }),
+        ),
+      );
+
       // Rafraîchir les données
       const imagesRes = await projectsAPI.getProjectImages(id);
       setImages(imagesRes.data);
@@ -462,30 +464,30 @@ const ProjectDetail = () => {
     setAnnotations([]); // Réinitialiser les annotations avant le chargement
     setSelectedAnnotation(null); // Réinitialiser l'annotation sélectionnée
     setEditedAnnotation(null); // Réinitialiser l'annotation en cours d'édition
-    
+
     // Créer l'URL de prévisualisation
     const imageUrl = image.image_url;
     setImagePreview(imageUrl);
-    
+
     try {
       // Récupérer les annotations existantes pour cette image spécifique
       const annotationsRes = await annotationAPI.getAnnotations(image.id);
       const existingAnnotations = annotationsRes.data || [];
-      
+
       // Appeler la détection YOLO
       const response = await projectsAPI.detectObjects(id, {
-        image_id: image.id
+        image_id: image.id,
       });
-      
+
       // Fusionner les détections avec les annotations existantes
-      const yoloAnnotations = (response.data || []).map(detection => ({
+      const yoloAnnotations = (response.data || []).map((detection) => ({
         ...detection,
         id: `yolo-${Date.now()}-${Math.random()}`,
         type: 'yolo',
         dataitem: image.id,
-        confidence: detection.confidence || 1.0
+        confidence: detection.confidence || 1.0,
       }));
-      
+
       setAnnotations([...existingAnnotations, ...yoloAnnotations]);
     } catch (error) {
       console.error('Erreur lors du chargement des annotations:', error);
@@ -499,8 +501,8 @@ const ProjectDetail = () => {
       setAnnotationHistory(response.data);
       setShowHistory(true);
     } catch (error) {
-      console.error('Erreur lors du chargement de l\'historique:', error);
-      setError('Erreur lors du chargement de l\'historique');
+      console.error("Erreur lors du chargement de l'historique:", error);
+      setError("Erreur lors du chargement de l'historique");
     }
   };
 
@@ -513,7 +515,7 @@ const ProjectDetail = () => {
         y_min: history.previous_y_min,
         x_max: history.previous_x_max,
         y_max: history.previous_y_max,
-        modification_type: 'restore'
+        modification_type: 'restore',
       };
 
       // Mettre à jour l'annotation dans la base de données
@@ -521,25 +523,24 @@ const ProjectDetail = () => {
       const updatedAnnotation = response.data;
 
       // Mettre à jour la liste des annotations
-      setAnnotations(annotations.map(ann => 
-        ann.id === selectedAnnotation.id ? updatedAnnotation : ann
-      ));
+      setAnnotations(
+        annotations.map((ann) => (ann.id === selectedAnnotation.id ? updatedAnnotation : ann)),
+      );
 
       // Fermer la boîte de dialogue d'historique
       setShowHistory(false);
-    
+
       // Mettre à jour l'annotation sélectionnée
       setSelectedAnnotation(updatedAnnotation);
       setEditedAnnotation(updatedAnnotation);
-    
+
       // Basculer vers l'onglet d'annotation
       setCurrentTab(1);
-    
+
       // Message de succès
       // setSnackbarMessage('Version restaurée avec succès');
       // setSnackbarSeverity('success');
       // setSnackbarOpen(true);
-
     } catch (error) {
       console.error('Erreur lors de la restauration:', error);
       // setSnackbarMessage('Erreur lors de la restauration de la version');
@@ -550,17 +551,17 @@ const ProjectDetail = () => {
 
   // Composant pour afficher l'historique
   const HistoryDialog = () => (
-    <Dialog 
-      open={showHistory} 
-      onClose={() => setShowHistory(false)} 
-      maxWidth="md" 
+    <Dialog
+      open={showHistory}
+      onClose={() => setShowHistory(false)}
+      maxWidth="md"
       fullWidth
       slotProps={{
         paper: {
           sx: {
-            maxHeight: '80vh'
-          }
-        }
+            maxHeight: '80vh',
+          },
+        },
       }}
     >
       <DialogTitle>
@@ -581,39 +582,52 @@ const ProjectDetail = () => {
         ) : (
           <List>
             {annotationHistory.map((history, index) => (
-              <ListItem 
-                key={history.id} 
+              <ListItem
+                key={history.id}
                 divider={index < annotationHistory.length - 1}
-                sx={{ 
-                  flexDirection: 'column', 
+                sx={{
+                  flexDirection: 'column',
                   alignItems: 'flex-start',
                   backgroundColor: index % 2 === 0 ? 'rgba(0, 0, 0, 0.03)' : 'transparent',
                   borderRadius: 1,
                   my: 1,
-                  p: 2
+                  p: 2,
                 }}
               >
-                <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Box
+                  sx={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 1,
+                  }}
+                >
                   <Box>
                     <Typography variant="subtitle1" component="span" sx={{ fontWeight: 'bold' }}>
                       {history.modified_by_username}
                     </Typography>
                   </Box>
-                  <Typography variant="body2" sx={{
-                    color: "text.secondary"
-                  }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {new Date(history.modified_at).toLocaleString()}
                   </Typography>
                 </Box>
 
                 <Box sx={{ width: '100%' }}>
                   <Typography variant="body1" gutterBottom>
-                    Type de modification : {
-                      history.modification_type === 'create' ? 'Création' :
-                      history.modification_type === 'update' ? 'Mise à jour' :
-                      history.modification_type === 'yolo_edit' ? 'Édition YOLO' :
-                      history.modification_type
-                    }
+                    Type de modification :{' '}
+                    {history.modification_type === 'create'
+                      ? 'Création'
+                      : history.modification_type === 'update'
+                        ? 'Mise à jour'
+                        : history.modification_type === 'yolo_edit'
+                          ? 'Édition YOLO'
+                          : history.modification_type}
                   </Typography>
 
                   <Box sx={{ mt: 1, bgcolor: 'background.paper', p: 1, borderRadius: 1 }}>
@@ -621,21 +635,21 @@ const ProjectDetail = () => {
                       Valeurs :
                     </Typography>
                     <Box sx={{ pl: 2 }}>
+                      <Typography variant="body2">• Label : {history.previous_label}</Typography>
                       <Typography variant="body2">
-                        • Label : {history.previous_label}
-                      </Typography>
-                      <Typography variant="body2">
-                        • Position : ({Math.round(history.previous_x_min * 100)}%, {Math.round(history.previous_y_min * 100)}%) - 
-                        ({Math.round(history.previous_x_max * 100)}%, {Math.round(history.previous_y_max * 100)}%)
+                        • Position : ({Math.round(history.previous_x_min * 100)}%,{' '}
+                        {Math.round(history.previous_y_min * 100)}%) - (
+                        {Math.round(history.previous_x_max * 100)}%,{' '}
+                        {Math.round(history.previous_y_max * 100)}%)
                       </Typography>
                     </Box>
                   </Box>
                 </Box>
 
                 {history.modification_type !== 'create' && (
-                  <Button 
+                  <Button
                     onClick={() => restoreAnnotationVersion(history)}
-                    variant="contained" 
+                    variant="contained"
                     size="small"
                     startIcon={<HistoryIcon />}
                     sx={{ mt: 2 }}
@@ -653,10 +667,7 @@ const ProjectDetail = () => {
   );
 
   const DeleteConfirmationDialog = () => (
-    <Dialog
-      open={deleteDialogOpen}
-      onClose={() => setDeleteDialogOpen(false)}
-    >
+    <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
       <DialogTitle>Confirmer la suppression</DialogTitle>
       <DialogContent>
         <DialogContentText>
@@ -688,13 +699,10 @@ const ProjectDetail = () => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            pr: 1
+            pr: 1,
           }}
         >
-          <ListItemButton
-            onClick={() => handleAnnotationEdit(annotation)}
-            sx={{ flexGrow: 1 }}
-          >
+          <ListItemButton onClick={() => handleAnnotationEdit(annotation)} sx={{ flexGrow: 1 }}>
             <ListItemText
               primary={`${annotation.label} ${typeof annotation.id === 'string' && annotation.id.startsWith('yolo-') ? '(YOLO)' : ''}`}
               secondary={`Confiance: ${Math.round(annotation.confidence * 100)}%`}
@@ -827,11 +835,7 @@ const ProjectDetail = () => {
                   id="image-upload"
                 />
                 <label htmlFor="image-upload">
-                  <Button
-                    variant="contained"
-                    component="span"
-                    startIcon={<AddIcon />}
-                  >
+                  <Button variant="contained" component="span" startIcon={<AddIcon />}>
                     Ajouter des images
                   </Button>
                 </label>
@@ -846,13 +850,14 @@ const ProjectDetail = () => {
                       size={{
                         xs: 12,
                         sm: 6,
-                        md: 4
-                      }}>
+                        md: 4,
+                      }}
+                    >
                       <Paper
                         sx={{
                           p: 2,
                           cursor: 'pointer',
-                          '&:hover': { bgcolor: 'action.hover' }
+                          '&:hover': { bgcolor: 'action.hover' },
                         }}
                         onClick={() => handleImageSelect(image)}
                       >
@@ -864,7 +869,7 @@ const ProjectDetail = () => {
                             width: '100%',
                             height: 200,
                             objectFit: 'cover',
-                            borderRadius: 1
+                            borderRadius: 1,
                           }}
                         />
                         <Typography variant="body2" sx={{ mt: 1 }}>
@@ -877,12 +882,17 @@ const ProjectDetail = () => {
               ) : (
                 /* Interface d'annotation */
                 <Box>
-                  <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6">
-                      Annotation de l'image
-                    </Typography>
-                    <Button 
-                      variant="outlined" 
+                  <Box
+                    sx={{
+                      mb: 2,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography variant="h6">Annotation de l'image</Typography>
+                    <Button
+                      variant="outlined"
                       onClick={() => {
                         setSelectedImage(null);
                         setAnnotations([]);
@@ -898,9 +908,18 @@ const ProjectDetail = () => {
                     <Grid
                       size={{
                         xs: 12,
-                        md: 8
-                      }}>
-                      <Paper sx={{ p: 2, height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        md: 8,
+                      }}
+                    >
+                      <Paper
+                        sx={{
+                          p: 2,
+                          height: '600px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
                         <Box
                           ref={containerRef}
                           sx={{
@@ -909,20 +928,20 @@ const ProjectDetail = () => {
                             height: '100%',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
                           }}
                           onMouseMove={handleBoxMouseMove}
                           onMouseUp={handleBoxMouseUp}
                           onMouseLeave={handleBoxMouseUp}
                         >
-                          <img 
-                            ref={imageRef} 
+                          <img
+                            ref={imageRef}
                             src={selectedImage?.image_url}
-                            alt="Preview" 
+                            alt="Preview"
                             style={{
                               maxWidth: '100%',
                               maxHeight: '100%',
-                              objectFit: 'contain'
+                              objectFit: 'contain',
                             }}
                           />
                           <Box
@@ -931,125 +950,129 @@ const ProjectDetail = () => {
                               top: 0,
                               left: 0,
                               right: 0,
-                              bottom: 0
+                              bottom: 0,
                             }}
                           >
-                            {annotations && annotations.map((annotation, index) => {
-                              if (!annotation || !annotation.x_min) return null;
-                              
-                              return (
-                                <div
-                                  key={index}
-                                  className="annotation-box"
-                                  style={{
-                                    position: 'absolute',
-                                    left: `${annotation.x_min * 100}%`,
-                                    top: `${annotation.y_min * 100}%`,
-                                    width: `${(annotation.x_max - annotation.x_min) * 100}%`,
-                                    height: `${(annotation.y_max - annotation.y_min) * 100}%`,
-                                    border: '2px solid red',
-                                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                                    cursor: 'move',
-                                    zIndex: selectedAnnotation?.id === annotation.id ? 2 : 1
-                                  }}
-                                  onMouseDown={(e) => handleBoxMouseDown(e, annotation)}
-                                >
-                                  <div style={{
-                                    position: 'absolute',
-                                    top: '-24px',
-                                    left: '0',
-                                    backgroundColor: 'red',
-                                    color: 'white',
-                                    padding: '2px 6px',
-                                    fontSize: '12px',
-                                    borderRadius: '3px',
-                                    zIndex: 3
-                                  }}>
-                                    {annotation.label} ({Math.round(annotation.confidence * 100)}%)
+                            {annotations &&
+                              annotations.map((annotation, index) => {
+                                if (!annotation || !annotation.x_min) return null;
+
+                                return (
+                                  <div
+                                    key={index}
+                                    className="annotation-box"
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${annotation.x_min * 100}%`,
+                                      top: `${annotation.y_min * 100}%`,
+                                      width: `${(annotation.x_max - annotation.x_min) * 100}%`,
+                                      height: `${(annotation.y_max - annotation.y_min) * 100}%`,
+                                      border: '2px solid red',
+                                      backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                                      cursor: 'move',
+                                      zIndex: selectedAnnotation?.id === annotation.id ? 2 : 1,
+                                    }}
+                                    onMouseDown={(e) => handleBoxMouseDown(e, annotation)}
+                                  >
+                                    <div
+                                      style={{
+                                        position: 'absolute',
+                                        top: '-24px',
+                                        left: '0',
+                                        backgroundColor: 'red',
+                                        color: 'white',
+                                        padding: '2px 6px',
+                                        fontSize: '12px',
+                                        borderRadius: '3px',
+                                        zIndex: 3,
+                                      }}
+                                    >
+                                      {annotation.label} ({Math.round(annotation.confidence * 100)}
+                                      %)
+                                    </div>
+                                    {selectedAnnotation?.id === annotation.id && (
+                                      <>
+                                        <div
+                                          className="resize-handle nw"
+                                          style={{
+                                            position: 'absolute',
+                                            top: '-5px',
+                                            left: '-5px',
+                                            width: '10px',
+                                            height: '10px',
+                                            backgroundColor: 'white',
+                                            border: '2px solid red',
+                                            cursor: 'nw-resize',
+                                            zIndex: 3,
+                                          }}
+                                          onMouseDown={(e) => {
+                                            e.stopPropagation();
+                                            setResizing('nw');
+                                            handleBoxMouseDown(e, annotation);
+                                          }}
+                                        />
+                                        <div
+                                          className="resize-handle ne"
+                                          style={{
+                                            position: 'absolute',
+                                            top: '-5px',
+                                            right: '-5px',
+                                            width: '10px',
+                                            height: '10px',
+                                            backgroundColor: 'white',
+                                            border: '2px solid red',
+                                            cursor: 'ne-resize',
+                                            zIndex: 3,
+                                          }}
+                                          onMouseDown={(e) => {
+                                            e.stopPropagation();
+                                            setResizing('ne');
+                                            handleBoxMouseDown(e, annotation);
+                                          }}
+                                        />
+                                        <div
+                                          className="resize-handle sw"
+                                          style={{
+                                            position: 'absolute',
+                                            bottom: '-5px',
+                                            left: '-5px',
+                                            width: '10px',
+                                            height: '10px',
+                                            backgroundColor: 'white',
+                                            border: '2px solid red',
+                                            cursor: 'sw-resize',
+                                            zIndex: 3,
+                                          }}
+                                          onMouseDown={(e) => {
+                                            e.stopPropagation();
+                                            setResizing('sw');
+                                            handleBoxMouseDown(e, annotation);
+                                          }}
+                                        />
+                                        <div
+                                          className="resize-handle se"
+                                          style={{
+                                            position: 'absolute',
+                                            bottom: '-5px',
+                                            right: '-5px',
+                                            width: '10px',
+                                            height: '10px',
+                                            backgroundColor: 'white',
+                                            border: '2px solid red',
+                                            cursor: 'se-resize',
+                                            zIndex: 3,
+                                          }}
+                                          onMouseDown={(e) => {
+                                            e.stopPropagation();
+                                            setResizing('se');
+                                            handleBoxMouseDown(e, annotation);
+                                          }}
+                                        />
+                                      </>
+                                    )}
                                   </div>
-                                  {selectedAnnotation?.id === annotation.id && (
-                                    <>
-                                      <div 
-                                        className="resize-handle nw" 
-                                        style={{ 
-                                          position: 'absolute', 
-                                          top: '-5px', 
-                                          left: '-5px', 
-                                          width: '10px', 
-                                          height: '10px', 
-                                          backgroundColor: 'white', 
-                                          border: '2px solid red', 
-                                          cursor: 'nw-resize',
-                                          zIndex: 3 
-                                        }} 
-                                        onMouseDown={(e) => {
-                                          e.stopPropagation();
-                                          setResizing('nw');
-                                          handleBoxMouseDown(e, annotation);
-                                        }}
-                                      />
-                                      <div 
-                                        className="resize-handle ne" 
-                                        style={{ 
-                                          position: 'absolute', 
-                                          top: '-5px', 
-                                          right: '-5px', 
-                                          width: '10px', 
-                                          height: '10px', 
-                                          backgroundColor: 'white', 
-                                          border: '2px solid red', 
-                                          cursor: 'ne-resize',
-                                          zIndex: 3 
-                                        }}
-                                        onMouseDown={(e) => {
-                                          e.stopPropagation();
-                                          setResizing('ne');
-                                          handleBoxMouseDown(e, annotation);
-                                        }}
-                                      />
-                                      <div 
-                                        className="resize-handle sw" 
-                                        style={{ 
-                                          position: 'absolute', 
-                                          bottom: '-5px', 
-                                          left: '-5px', 
-                                          width: '10px', 
-                                          height: '10px', 
-                                          backgroundColor: 'white', 
-                                          border: '2px solid red', 
-                                          cursor: 'sw-resize',
-                                          zIndex: 3 
-                                        }}
-                                        onMouseDown={(e) => {
-                                          e.stopPropagation();
-                                          setResizing('sw');
-                                          handleBoxMouseDown(e, annotation);
-                                        }}
-                                      />
-                                      <div 
-                                        className="resize-handle se" 
-                                        style={{ 
-                                          position: 'absolute', 
-                                          bottom: '-5px', 
-                                          right: '-5px', 
-                                          width: '10px', 
-                                          height: '10px', 
-                                          backgroundColor: 'white', 
-                                          border: '2px solid red', 
-                                          cursor: 'se-resize',
-                                          zIndex: 3 
-                                        }}
-                                        onMouseDown={(e) => {
-                                          e.stopPropagation();
-                                          setResizing('se');
-                                          handleBoxMouseDown(e, annotation);
-                                        }}
-                                      />
-                                    </>
-                                  )}
-                                </div>
-                              );
-                            })}
+                                );
+                              })}
                           </Box>
                         </Box>
                       </Paper>
@@ -1058,13 +1081,14 @@ const ProjectDetail = () => {
                     <Grid
                       size={{
                         xs: 12,
-                        md: 4
-                      }}>
+                        md: 4,
+                      }}
+                    >
                       <Paper sx={{ p: 2 }}>
                         <Typography variant="h6" gutterBottom>
                           Annotations
                         </Typography>
-                        
+
                         {/* Liste des annotations */}
                         {renderAnnotationsList()}
 
@@ -1086,17 +1110,19 @@ const ProjectDetail = () => {
                               type="number"
                               label="Confiance (%)"
                               value={Math.round(editedAnnotation.confidence * 100)}
-                              onChange={(e) => handleAnnotationUpdate('confidence', Number(e.target.value) / 100)}
+                              onChange={(e) =>
+                                handleAnnotationUpdate('confidence', Number(e.target.value) / 100)
+                              }
                               margin="normal"
                               slotProps={{
-                                htmlInput: { min: 0, max: 100 }
+                                htmlInput: { min: 0, max: 100 },
                               }}
                             />
 
                             <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
                               Coordonnées de la boîte
                             </Typography>
-                            
+
                             <Grid container spacing={2}>
                               <Grid size={6}>
                                 <TextField
@@ -1111,7 +1137,7 @@ const ProjectDetail = () => {
                                     }
                                   }}
                                   slotProps={{
-                                    htmlInput: { min: 0, max: 99 }
+                                    htmlInput: { min: 0, max: 99 },
                                   }}
                                 />
                               </Grid>
@@ -1128,7 +1154,7 @@ const ProjectDetail = () => {
                                     }
                                   }}
                                   slotProps={{
-                                    htmlInput: { min: 1, max: 100 }
+                                    htmlInput: { min: 1, max: 100 },
                                   }}
                                 />
                               </Grid>
@@ -1145,7 +1171,7 @@ const ProjectDetail = () => {
                                     }
                                   }}
                                   slotProps={{
-                                    htmlInput: { min: 0, max: 99 }
+                                    htmlInput: { min: 0, max: 99 },
                                   }}
                                 />
                               </Grid>
@@ -1162,7 +1188,7 @@ const ProjectDetail = () => {
                                     }
                                   }}
                                   slotProps={{
-                                    htmlInput: { min: 1, max: 100 }
+                                    htmlInput: { min: 1, max: 100 },
                                   }}
                                 />
                               </Grid>
@@ -1205,10 +1231,7 @@ const ProjectDetail = () => {
               </Typography>
               <List>
                 <ListItem>
-                  <ListItemText
-                    primary="Images"
-                    secondary={stats?.total_images || 0}
-                  />
+                  <ListItemText primary="Images" secondary={stats?.total_images || 0} />
                 </ListItem>
                 <ListItem>
                   <ListItemText
@@ -1233,14 +1256,10 @@ const ProjectDetail = () => {
           )}
 
           {/* Onglet Collaborateurs */}
-          {currentTab === 3 && (
-            <ProjectCollaborators projectId={id} />
-          )}
+          {currentTab === 3 && <ProjectCollaborators projectId={id} />}
 
           {/* Onglet Invitations */}
-          {currentTab === 4 && (
-            <ProjectInvitations />
-          )}
+          {currentTab === 4 && <ProjectInvitations />}
         </Grid>
       </Grid>
 

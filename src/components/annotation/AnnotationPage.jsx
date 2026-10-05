@@ -14,14 +14,14 @@ import {
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
-  Slider
+  Slider,
 } from '@mui/material';
 import {
   CloudUpload,
   Delete as DeleteIcon,
   Edit as EditIcon,
   Save as SaveIcon,
-  Add as AddIcon
+  Add as AddIcon,
 } from '@mui/icons-material';
 import { annotationAPI } from '../../services/api';
 
@@ -69,17 +69,19 @@ const AnnotationPage = () => {
 
       // La réponse contient un tableau de détections dans response.data.detections
       const detections = response.data.detections || [];
-      
-      setAnnotations(detections.map((det, index) => ({
-        id: index,
-        label: det.label || 'Inconnu',
-        confidence: det.confidence || 1.0,
-        x_min: det.x_min || 0,
-        y_min: det.y_min || 0,
-        x_max: det.x_max || 1,
-        y_max: det.y_max || 1
-      })));
-      
+
+      setAnnotations(
+        detections.map((det, index) => ({
+          id: index,
+          label: det.label || 'Inconnu',
+          confidence: det.confidence || 1.0,
+          x_min: det.x_min || 0,
+          y_min: det.y_min || 0,
+          x_max: det.x_max || 1,
+          y_max: det.y_max || 1,
+        })),
+      );
+
       setSuccess('Détection réussie !');
     } catch (error) {
       console.error('Erreur lors de la détection:', error);
@@ -93,13 +95,13 @@ const AnnotationPage = () => {
     const bounds = containerRef.current.getBoundingClientRect();
     return {
       x: (event.clientX - bounds.left) / bounds.width,
-      y: (event.clientY - bounds.top) / bounds.height
+      y: (event.clientY - bounds.top) / bounds.height,
     };
   };
 
   const handleMouseDown = (event) => {
     if (!selectedImage) return;
-    
+
     const coords = getRelativeCoordinates(event);
     setIsDrawing(true);
     setStartPoint(coords);
@@ -116,11 +118,11 @@ const AnnotationPage = () => {
       x_min: Math.min(startPoint.x, coords.x),
       y_min: Math.min(startPoint.y, coords.y),
       x_max: Math.max(startPoint.x, coords.x),
-      y_max: Math.max(startPoint.y, coords.y)
+      y_max: Math.max(startPoint.y, coords.y),
     };
 
-    setAnnotations(prev => {
-      const filtered = prev.filter(a => a.id !== 'temp');
+    setAnnotations((prev) => {
+      const filtered = prev.filter((a) => a.id !== 'temp');
       return [...filtered, { ...newAnnotation, id: 'temp' }];
     });
   };
@@ -129,9 +131,9 @@ const AnnotationPage = () => {
     if (!isDrawing) return;
 
     setIsDrawing(false);
-    setAnnotations(prev => {
-      const filtered = prev.filter(a => a.id !== 'temp');
-      const temp = prev.find(a => a.id === 'temp');
+    setAnnotations((prev) => {
+      const filtered = prev.filter((a) => a.id !== 'temp');
+      const temp = prev.find((a) => a.id === 'temp');
       if (temp) {
         return [...filtered, { ...temp, id: prev.length }];
       }
@@ -177,20 +179,44 @@ const AnnotationPage = () => {
       const newAnnotation = { ...editedAnnotation };
       switch (resizing) {
         case 'nw':
-          newAnnotation.x_min = Math.min(Math.max(editedAnnotation.x_min + deltaX, 0), editedAnnotation.x_max - 0.01);
-          newAnnotation.y_min = Math.min(Math.max(editedAnnotation.y_min + deltaY, 0), editedAnnotation.y_max - 0.01);
+          newAnnotation.x_min = Math.min(
+            Math.max(editedAnnotation.x_min + deltaX, 0),
+            editedAnnotation.x_max - 0.01,
+          );
+          newAnnotation.y_min = Math.min(
+            Math.max(editedAnnotation.y_min + deltaY, 0),
+            editedAnnotation.y_max - 0.01,
+          );
           break;
         case 'ne':
-          newAnnotation.x_max = Math.max(Math.min(editedAnnotation.x_max + deltaX, 1), editedAnnotation.x_min + 0.01);
-          newAnnotation.y_min = Math.min(Math.max(editedAnnotation.y_min + deltaY, 0), editedAnnotation.y_max - 0.01);
+          newAnnotation.x_max = Math.max(
+            Math.min(editedAnnotation.x_max + deltaX, 1),
+            editedAnnotation.x_min + 0.01,
+          );
+          newAnnotation.y_min = Math.min(
+            Math.max(editedAnnotation.y_min + deltaY, 0),
+            editedAnnotation.y_max - 0.01,
+          );
           break;
         case 'sw':
-          newAnnotation.x_min = Math.min(Math.max(editedAnnotation.x_min + deltaX, 0), editedAnnotation.x_max - 0.01);
-          newAnnotation.y_max = Math.max(Math.min(editedAnnotation.y_max + deltaY, 1), editedAnnotation.y_min + 0.01);
+          newAnnotation.x_min = Math.min(
+            Math.max(editedAnnotation.x_min + deltaX, 0),
+            editedAnnotation.x_max - 0.01,
+          );
+          newAnnotation.y_max = Math.max(
+            Math.min(editedAnnotation.y_max + deltaY, 1),
+            editedAnnotation.y_min + 0.01,
+          );
           break;
         case 'se':
-          newAnnotation.x_max = Math.max(Math.min(editedAnnotation.x_max + deltaX, 1), editedAnnotation.x_min + 0.01);
-          newAnnotation.y_max = Math.max(Math.min(editedAnnotation.y_max + deltaY, 1), editedAnnotation.y_min + 0.01);
+          newAnnotation.x_max = Math.max(
+            Math.min(editedAnnotation.x_max + deltaX, 1),
+            editedAnnotation.x_min + 0.01,
+          );
+          newAnnotation.y_max = Math.max(
+            Math.min(editedAnnotation.y_max + deltaY, 1),
+            editedAnnotation.y_min + 0.01,
+          );
           break;
       }
       setEditedAnnotation(newAnnotation);
@@ -198,16 +224,16 @@ const AnnotationPage = () => {
       // Déplacement
       const width = editedAnnotation.x_max - editedAnnotation.x_min;
       const height = editedAnnotation.y_max - editedAnnotation.y_min;
-      
+
       let newX_min = Math.max(0, Math.min(editedAnnotation.x_min + deltaX, 1 - width));
       let newY_min = Math.max(0, Math.min(editedAnnotation.y_min + deltaY, 1 - height));
-      
+
       setEditedAnnotation({
         ...editedAnnotation,
         x_min: newX_min,
         y_min: newY_min,
         x_max: newX_min + width,
-        y_max: newY_min + height
+        y_max: newY_min + height,
       });
     }
 
@@ -217,8 +243,8 @@ const AnnotationPage = () => {
   const handleBoxMouseUp = () => {
     if (isDragging && editedAnnotation) {
       // Mettre à jour l'annotation dans la liste
-      setAnnotations(prev =>
-        prev.map(ann => ann.id === editedAnnotation.id ? editedAnnotation : ann)
+      setAnnotations((prev) =>
+        prev.map((ann) => (ann.id === editedAnnotation.id ? editedAnnotation : ann)),
       );
     }
     setIsDragging(false);
@@ -229,22 +255,22 @@ const AnnotationPage = () => {
   const handleAnnotationEdit = (annotation) => {
     setSelectedAnnotation(annotation);
     setEditedAnnotation({
-      ...annotation
+      ...annotation,
     });
   };
 
   const handleAnnotationUpdate = (field, value) => {
-    setEditedAnnotation(prev => ({
+    setEditedAnnotation((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleSaveEdit = () => {
     if (!editedAnnotation) return;
 
-    setAnnotations(prev =>
-      prev.map(ann => ann.id === editedAnnotation.id ? editedAnnotation : ann)
+    setAnnotations((prev) =>
+      prev.map((ann) => (ann.id === editedAnnotation.id ? editedAnnotation : ann)),
     );
     setSelectedAnnotation(null);
     setEditedAnnotation(null);
@@ -257,7 +283,7 @@ const AnnotationPage = () => {
   };
 
   const handleAnnotationDelete = (id) => {
-    setAnnotations(prev => prev.filter(ann => ann.id !== id));
+    setAnnotations((prev) => prev.filter((ann) => ann.id !== id));
     if (selectedAnnotation?.id === id) {
       setSelectedAnnotation(null);
     }
@@ -295,8 +321,9 @@ const AnnotationPage = () => {
           <Grid
             size={{
               xs: 12,
-              md: 8
-            }}>
+              md: 8,
+            }}
+          >
             <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
               <input
                 accept="image/*"
@@ -306,11 +333,7 @@ const AnnotationPage = () => {
                 onChange={handleImageSelect}
               />
               <label htmlFor="image-upload">
-                <Button
-                  variant="contained"
-                  component="span"
-                  startIcon={<CloudUpload />}
-                >
+                <Button variant="contained" component="span" startIcon={<CloudUpload />}>
                   Charger une image
                 </Button>
               </label>
@@ -347,8 +370,8 @@ const AnnotationPage = () => {
                   cursor: isDrawing ? 'crosshair' : 'default',
                   '& img': {
                     maxWidth: '100%',
-                    height: 'auto'
-                  }
+                    height: 'auto',
+                  },
                 }}
                 onMouseDown={handleMouseDown}
                 onMouseMove={(e) => {
@@ -368,7 +391,7 @@ const AnnotationPage = () => {
                 {annotations.map((annotation) => {
                   const isSelected = selectedAnnotation?.id === annotation.id;
                   const annotationToShow = isSelected ? editedAnnotation : annotation;
-                  
+
                   return (
                     <div
                       key={annotation.id}
@@ -381,7 +404,7 @@ const AnnotationPage = () => {
                         border: '2px solid red',
                         backgroundColor: 'rgba(255, 0, 0, 0.1)',
                         cursor: isSelected ? 'move' : 'pointer',
-                        zIndex: isSelected ? 2 : 1
+                        zIndex: isSelected ? 2 : 1,
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -389,25 +412,79 @@ const AnnotationPage = () => {
                       }}
                       onMouseDown={(e) => handleBoxMouseDown(e, annotation)}
                     >
-                      <span style={{
-                        position: 'absolute',
-                        top: '-20px',
-                        left: '0',
-                        backgroundColor: 'red',
-                        color: 'white',
-                        padding: '2px 4px',
-                        fontSize: '12px',
-                        borderRadius: '3px',
-                        zIndex: 3
-                      }}>
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '-20px',
+                          left: '0',
+                          backgroundColor: 'red',
+                          color: 'white',
+                          padding: '2px 4px',
+                          fontSize: '12px',
+                          borderRadius: '3px',
+                          zIndex: 3,
+                        }}
+                      >
                         {annotationToShow.label} ({Math.round(annotationToShow.confidence * 100)}%)
                       </span>
                       {isSelected && (
                         <>
-                          <div className="resize-handle nw" style={{ position: 'absolute', top: '-5px', left: '-5px', width: '10px', height: '10px', backgroundColor: 'white', border: '1px solid red', cursor: 'nw-resize', zIndex: 3 }} />
-                          <div className="resize-handle ne" style={{ position: 'absolute', top: '-5px', right: '-5px', width: '10px', height: '10px', backgroundColor: 'white', border: '1px solid red', cursor: 'ne-resize', zIndex: 3 }} />
-                          <div className="resize-handle sw" style={{ position: 'absolute', bottom: '-5px', left: '-5px', width: '10px', height: '10px', backgroundColor: 'white', border: '1px solid red', cursor: 'sw-resize', zIndex: 3 }} />
-                          <div className="resize-handle se" style={{ position: 'absolute', bottom: '-5px', right: '-5px', width: '10px', height: '10px', backgroundColor: 'white', border: '1px solid red', cursor: 'se-resize', zIndex: 3 }} />
+                          <div
+                            className="resize-handle nw"
+                            style={{
+                              position: 'absolute',
+                              top: '-5px',
+                              left: '-5px',
+                              width: '10px',
+                              height: '10px',
+                              backgroundColor: 'white',
+                              border: '1px solid red',
+                              cursor: 'nw-resize',
+                              zIndex: 3,
+                            }}
+                          />
+                          <div
+                            className="resize-handle ne"
+                            style={{
+                              position: 'absolute',
+                              top: '-5px',
+                              right: '-5px',
+                              width: '10px',
+                              height: '10px',
+                              backgroundColor: 'white',
+                              border: '1px solid red',
+                              cursor: 'ne-resize',
+                              zIndex: 3,
+                            }}
+                          />
+                          <div
+                            className="resize-handle sw"
+                            style={{
+                              position: 'absolute',
+                              bottom: '-5px',
+                              left: '-5px',
+                              width: '10px',
+                              height: '10px',
+                              backgroundColor: 'white',
+                              border: '1px solid red',
+                              cursor: 'sw-resize',
+                              zIndex: 3,
+                            }}
+                          />
+                          <div
+                            className="resize-handle se"
+                            style={{
+                              position: 'absolute',
+                              bottom: '-5px',
+                              right: '-5px',
+                              width: '10px',
+                              height: '10px',
+                              backgroundColor: 'white',
+                              border: '1px solid red',
+                              cursor: 'se-resize',
+                              zIndex: 3,
+                            }}
+                          />
                         </>
                       )}
                     </div>
@@ -420,33 +497,25 @@ const AnnotationPage = () => {
           <Grid
             size={{
               xs: 12,
-              md: 4
-            }}>
+              md: 4,
+            }}
+          >
             <Paper elevation={2} sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Annotations
               </Typography>
               <List>
                 {annotations.map((annotation) => (
-                  <ListItem
-                    key={annotation.id}
-                    selected={selectedAnnotation?.id === annotation.id}
-                  >
+                  <ListItem key={annotation.id} selected={selectedAnnotation?.id === annotation.id}>
                     <ListItemText
                       primary={annotation.label}
                       secondary={`Confiance: ${Math.round(annotation.confidence * 100)}%`}
                     />
                     <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end"
-                        onClick={() => handleAnnotationEdit(annotation)}
-                      >
+                      <IconButton edge="end" onClick={() => handleAnnotationEdit(annotation)}>
                         <EditIcon />
                       </IconButton>
-                      <IconButton
-                        edge="end"
-                        onClick={() => handleAnnotationDelete(annotation.id)}
-                      >
+                      <IconButton edge="end" onClick={() => handleAnnotationDelete(annotation.id)}>
                         <DeleteIcon />
                       </IconButton>
                     </ListItemSecondaryAction>
@@ -471,17 +540,19 @@ const AnnotationPage = () => {
                     type="number"
                     label="Confiance (%)"
                     value={Math.round(editedAnnotation.confidence * 100)}
-                    onChange={(e) => handleAnnotationUpdate('confidence', Number(e.target.value) / 100)}
+                    onChange={(e) =>
+                      handleAnnotationUpdate('confidence', Number(e.target.value) / 100)
+                    }
                     margin="normal"
                     slotProps={{
-                      htmlInput: { min: 0, max: 100 }
+                      htmlInput: { min: 0, max: 100 },
                     }}
                   />
 
                   <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
                     Coordonnées de la boîte
                   </Typography>
-                  
+
                   <Grid container spacing={2}>
                     <Grid size={6}>
                       <TextField
@@ -496,7 +567,7 @@ const AnnotationPage = () => {
                           }
                         }}
                         slotProps={{
-                          htmlInput: { min: 0, max: 99 }
+                          htmlInput: { min: 0, max: 99 },
                         }}
                       />
                     </Grid>
@@ -513,7 +584,7 @@ const AnnotationPage = () => {
                           }
                         }}
                         slotProps={{
-                          htmlInput: { min: 1, max: 100 }
+                          htmlInput: { min: 1, max: 100 },
                         }}
                       />
                     </Grid>
@@ -530,7 +601,7 @@ const AnnotationPage = () => {
                           }
                         }}
                         slotProps={{
-                          htmlInput: { min: 0, max: 99 }
+                          htmlInput: { min: 0, max: 99 },
                         }}
                       />
                     </Grid>
@@ -547,7 +618,7 @@ const AnnotationPage = () => {
                           }
                         }}
                         slotProps={{
-                          htmlInput: { min: 1, max: 100 }
+                          htmlInput: { min: 1, max: 100 },
                         }}
                       />
                     </Grid>

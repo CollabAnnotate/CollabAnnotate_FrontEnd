@@ -8,7 +8,7 @@ import {
   Typography,
   Alert,
   CircularProgress,
-  Container
+  Container,
 } from '@mui/material';
 import { authAPI } from '../../services/api';
 
@@ -20,14 +20,14 @@ const Register = () => {
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   // Pas de choix du rôle : tout inscrit est annotateur, un administrateur
   // attribue les autres rôles depuis l'interface /admin/ de Django.
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('Veuillez remplir tous les champs');
       return;
@@ -49,21 +49,20 @@ const Register = () => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        password2: formData.confirmPassword
+        password2: formData.confirmPassword,
       });
 
       // Rediriger vers la page de connexion avec un message de succès
-      navigate('/login', { 
-        state: { 
+      navigate('/login', {
+        state: {
           message: 'Inscription réussie ! Vous pouvez maintenant vous connecter.',
-          type: 'success'
-        }
+          type: 'success',
+        },
       });
-      
     } catch (err) {
-      const errorMessage = err.response?.data?.errors 
+      const errorMessage = err.response?.data?.errors
         ? Object.values(err.response.data.errors).flat().join(', ')
-        : err.response?.data?.message || 'Erreur lors de l\'inscription';
+        : err.response?.data?.message || "Erreur lors de l'inscription";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -72,21 +71,23 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     setError('');
   };
 
   return (
     <Container maxWidth="sm">
-      <Box sx={{ 
-        minHeight: '100vh', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center' 
-      }}>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
           <Typography variant="h4" component="h1" gutterBottom align="center">
             Inscription
@@ -162,11 +163,7 @@ const Register = () => {
               sx={{ mt: 3 }}
               disabled={loading}
             >
-              {loading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "S'inscrire"
-              )}
+              {loading ? <CircularProgress size={24} color="inherit" /> : "S'inscrire"}
             </Button>
 
             <Button

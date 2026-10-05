@@ -13,12 +13,17 @@ import {
   MenuItem,
   Alert,
   Container,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { PhotoCamera } from '@mui/icons-material';
 import { usersAPI, getApiErrorMessage } from '../../services/api';
-import { updateUser, selectCurrentUser, selectAuthStatus, selectAuthError } from '../../store/authSlice';
+import {
+  updateUser,
+  selectCurrentUser,
+  selectAuthStatus,
+  selectAuthError,
+} from '../../store/authSlice';
 
 const UserProfile = () => {
   const dispatch = useDispatch();
@@ -32,38 +37,38 @@ const UserProfile = () => {
     first_name: currentUser?.first_name || '',
     last_name: currentUser?.last_name || '',
     bio: currentUser?.bio || '',
-    profile_picture: null
+    profile_picture: null,
   });
   const [success, setSuccess] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordData, setPasswordData] = useState({
     current_password: '',
     new_password: '',
-    confirm_password: ''
+    confirm_password: '',
   });
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handlePasswordChange = (event) => {
     const { name, value } = event.target;
-    setPasswordData(prev => ({
+    setPasswordData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleProfilePictureChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        profile_picture: file
+        profile_picture: file,
       }));
     }
   };
@@ -73,7 +78,7 @@ const UserProfile = () => {
     setSuccess('');
 
     const data = new FormData();
-    Object.keys(formData).forEach(key => {
+    Object.keys(formData).forEach((key) => {
       if (formData[key] !== null && formData[key] !== '') {
         data.append(key, formData[key]);
       }
@@ -97,13 +102,13 @@ const UserProfile = () => {
     try {
       await usersAPI.changePassword({
         current_password: passwordData.current_password,
-        new_password: passwordData.new_password
+        new_password: passwordData.new_password,
       });
       setSuccess('Mot de passe mis à jour avec succès');
       setPasswordData({
         current_password: '',
         new_password: '',
-        confirm_password: ''
+        confirm_password: '',
       });
     } catch (err) {
       setPasswordError(getApiErrorMessage(err, 'Erreur lors du changement de mot de passe'));
@@ -135,31 +140,36 @@ const UserProfile = () => {
             {error}
           </Alert>
         )}
-        
+
         {success && (
           <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
             {success}
           </Alert>
         )}
-        
+
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid
               size={12}
               sx={{
-                display: "flex",
-                justifyContent: "center"
-              }}>
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
               <Box sx={{ position: 'relative', textAlign: 'center' }}>
                 <Avatar
-                  src={formData.profile_picture ? URL.createObjectURL(formData.profile_picture) : currentUser.profile_picture}
-                  sx={{ 
-                    width: 120, 
-                    height: 120, 
+                  src={
+                    formData.profile_picture
+                      ? URL.createObjectURL(formData.profile_picture)
+                      : currentUser.profile_picture
+                  }
+                  sx={{
+                    width: 120,
+                    height: 120,
                     mb: 2,
                     mx: 'auto',
                     border: '4px solid',
-                    borderColor: 'primary.main' 
+                    borderColor: 'primary.main',
                   }}
                 />
                 <input
@@ -187,8 +197,9 @@ const UserProfile = () => {
             <Grid
               size={{
                 xs: 12,
-                sm: 6
-              }}>
+                sm: 6,
+              }}
+            >
               <TextField
                 fullWidth
                 label="Prénom"
@@ -203,8 +214,9 @@ const UserProfile = () => {
             <Grid
               size={{
                 xs: 12,
-                sm: 6
-              }}>
+                sm: 6,
+              }}
+            >
               <TextField
                 fullWidth
                 label="Nom"
@@ -246,12 +258,7 @@ const UserProfile = () => {
             <Grid size={12}>
               <FormControl fullWidth variant="outlined">
                 <InputLabel>Rôle</InputLabel>
-                <Select
-                  name="role"
-                  value={formData.role}
-                  label="Rôle"
-                  disabled
-                >
+                <Select name="role" value={formData.role} label="Rôle" disabled>
                   <MenuItem value="annotateur">Annotateur</MenuItem>
                   <MenuItem value="verificateur">Vérificateur</MenuItem>
                   <MenuItem value="admin">Administrateur</MenuItem>
@@ -275,10 +282,10 @@ const UserProfile = () => {
             </Grid>
 
             <Grid size={12}>
-              <Button 
-                type="submit" 
-                variant="contained" 
-                color="primary" 
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
                 fullWidth
                 size="large"
                 disabled={status === 'loading'}
@@ -345,16 +352,18 @@ const UserProfile = () => {
               </Grid>
 
               <Grid size={12}>
-                <Button 
-                  type="submit" 
-                  variant="contained" 
-                  color="secondary" 
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="secondary"
                   fullWidth
                   size="large"
-                  disabled={status === 'loading' || 
-                           !passwordData.current_password || 
-                           !passwordData.new_password ||
-                           passwordData.new_password !== passwordData.confirm_password}
+                  disabled={
+                    status === 'loading' ||
+                    !passwordData.current_password ||
+                    !passwordData.new_password ||
+                    passwordData.new_password !== passwordData.confirm_password
+                  }
                 >
                   {status === 'loading' ? 'Modification en cours...' : 'Changer le mot de passe'}
                 </Button>

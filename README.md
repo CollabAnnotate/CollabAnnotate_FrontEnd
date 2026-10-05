@@ -19,23 +19,27 @@ Interface utilisateur moderne et intuitive pour la plateforme collaborative d'an
 ## 🛠 Installation
 
 1. Cloner le repository
+
 ```bash
 git clone https://github.com/votre-username/CollabAnnotate_FrontEnd.git
 cd CollabAnnotate_FrontEnd
 ```
 
 2. Installer les dépendances
+
 ```bash
 npm install
 ```
 
 3. (Optionnel) Configurer l'URL de l'API
-Par défaut, l'application appelle `http://localhost:8000/api`. Pour changer cette URL, copier `.env.example` en `.env` et modifier :
+   Par défaut, l'application appelle `http://localhost:8000/api`. Pour changer cette URL, copier `.env.example` en `.env` et modifier :
+
 ```
 VITE_API_URL=http://localhost:8000/api
 ```
 
 4. Lancer l'application en mode développement
+
 ```bash
 npm run dev
 ```

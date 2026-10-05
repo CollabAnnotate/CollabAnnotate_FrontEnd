@@ -8,7 +8,7 @@ import {
   Alert,
   CircularProgress,
   Grid,
-  Container
+  Container,
 } from '@mui/material';
 import { usersAPI } from '../../services/api';
 
@@ -19,7 +19,7 @@ const UserProfile = () => {
   const [userData, setUserData] = useState({
     username: '',
     email: '',
-    role: ''
+    role: '',
   });
 
   useEffect(() => {
@@ -56,9 +56,9 @@ const UserProfile = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -116,12 +116,7 @@ const UserProfile = () => {
               </Grid>
 
               <Grid size={12}>
-                <TextField
-                  fullWidth
-                  label="Rôle"
-                  value={userData.role}
-                  disabled
-                />
+                <TextField fullWidth label="Rôle" value={userData.role} disabled />
               </Grid>
 
               <Grid size={12}>

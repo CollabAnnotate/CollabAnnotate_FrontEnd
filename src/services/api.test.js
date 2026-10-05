@@ -5,7 +5,9 @@ import api, { setAccessToken, getAccessToken, clearAccessToken } from './api';
 const respond = (config, status, data = {}) => {
   const response = { data, status, statusText: '', headers: {}, config };
   if (status >= 400) {
-    return Promise.reject(new AxiosError(`HTTP ${status}`, 'ERR_BAD_REQUEST', config, null, response));
+    return Promise.reject(
+      new AxiosError(`HTTP ${status}`, 'ERR_BAD_REQUEST', config, null, response),
+    );
   }
   return Promise.resolve(response);
 };
@@ -13,20 +15,22 @@ const respond = (config, status, data = {}) => {
 // Faux backend Django. Le refresh token vit dans un cookie HttpOnly que le
 // navigateur gère seul : on le simule ici par la variable `cookie`, avec
 // rotation à chaque refresh (l'ancien est blacklisté).
-const fakeBackend = (calls, { cookie = 'refresh-1' } = {}) => (config) => {
-  calls.push({ url: config.url, data: config.data, withCredentials: config.withCredentials });
-  if (config.url === 'token/refresh/') {
-    if (!cookie) {
-      return respond(config, 401, { detail: 'Aucun refresh token' });
+const fakeBackend =
+  (calls, { cookie = 'refresh-1' } = {}) =>
+  (config) => {
+    calls.push({ url: config.url, data: config.data, withCredentials: config.withCredentials });
+    if (config.url === 'token/refresh/') {
+      if (!cookie) {
+        return respond(config, 401, { detail: 'Aucun refresh token' });
+      }
+      cookie = `${cookie}-next`;
+      return respond(config, 200, { access: 'new-access' });
     }
-    cookie = `${cookie}-next`;
-    return respond(config, 200, { access: 'new-access' });
-  }
-  if (config.headers.Authorization === 'Bearer new-access') {
-    return respond(config, 200, { ok: true });
-  }
-  return respond(config, 401);
-};
+    if (config.headers.Authorization === 'Bearer new-access') {
+      return respond(config, 200, { ok: true });
+    }
+    return respond(config, 401);
+  };
 
 const urls = (calls) => calls.map((call) => call.url);
 

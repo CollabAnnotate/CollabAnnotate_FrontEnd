@@ -10,7 +10,7 @@ import {
   CardActions,
   Button,
   CircularProgress,
-  Alert
+  Alert,
 } from '@mui/material';
 import { projectsAPI } from '../../services/api';
 
@@ -21,7 +21,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState({
     totalProjects: 0,
     totalAnnotations: 0,
-    pendingValidations: 0
+    pendingValidations: 0,
   });
   const [projects, setProjects] = useState([]);
 
@@ -34,20 +34,20 @@ const Dashboard = () => {
     try {
       const projectsResponse = await projectsAPI.getProjects();
       setProjects(projectsResponse.data);
-      
+
       // Calculer les statistiques
       const totalAnnotations = projectsResponse.data.reduce(
-        (acc, project) => acc + (project.total_annotations || 0), 
-        0
+        (acc, project) => acc + (project.total_annotations || 0),
+        0,
       );
-      
+
       setStats({
         totalProjects: projectsResponse.data.length,
         totalAnnotations,
         pendingValidations: projectsResponse.data.reduce(
           (acc, project) => acc + (project.pending_annotations || 0),
-          0
-        )
+          0,
+        ),
       });
       setError('');
     } catch (err) {
@@ -76,11 +76,7 @@ const Dashboard = () => {
         <Typography variant="h4" gutterBottom>
           Tableau de bord
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleCreateProject}
-        >
+        <Button variant="contained" color="primary" onClick={handleCreateProject}>
           Nouveau Projet
         </Button>
       </Box>
@@ -96,8 +92,9 @@ const Dashboard = () => {
         <Grid
           size={{
             xs: 12,
-            md: 4
-          }}>
+            md: 4,
+          }}
+        >
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6">Projets</Typography>
             <Typography variant="h3">{stats.totalProjects}</Typography>
@@ -106,8 +103,9 @@ const Dashboard = () => {
         <Grid
           size={{
             xs: 12,
-            md: 4
-          }}>
+            md: 4,
+          }}
+        >
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6">Annotations</Typography>
             <Typography variant="h3">{stats.totalAnnotations}</Typography>
@@ -116,8 +114,9 @@ const Dashboard = () => {
         <Grid
           size={{
             xs: 12,
-            md: 4
-          }}>
+            md: 4,
+          }}
+        >
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6">En attente</Typography>
             <Typography variant="h3">{stats.pendingValidations}</Typography>
@@ -131,15 +130,8 @@ const Dashboard = () => {
       </Typography>
       {projects.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography color="textSecondary">
-            Aucun projet n'a été créé pour le moment.
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleCreateProject}
-            sx={{ mt: 2 }}
-          >
+          <Typography color="textSecondary">Aucun projet n'a été créé pour le moment.</Typography>
+          <Button variant="contained" color="primary" onClick={handleCreateProject} sx={{ mt: 2 }}>
             Créer votre premier projet
           </Button>
         </Paper>
@@ -150,8 +142,9 @@ const Dashboard = () => {
               key={project.id}
               size={{
                 xs: 12,
-                md: 6
-              }}>
+                md: 6,
+              }}
+            >
               <Card>
                 <CardContent>
                   <Typography variant="h6">{project.name}</Typography>
@@ -169,13 +162,10 @@ const Dashboard = () => {
                   </Typography>
                 </CardContent>
                 <CardActions>
-                  <Button 
-                    size="small" 
-                    onClick={() => navigate(`/projects/${project.id}`)}
-                  >
+                  <Button size="small" onClick={() => navigate(`/projects/${project.id}`)}>
                     Voir les détails
                   </Button>
-                  <Button 
+                  <Button
                     size="small"
                     color="primary"
                     onClick={() => navigate(`/projects/${project.id}/annotate`)}
